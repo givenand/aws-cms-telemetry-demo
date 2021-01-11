@@ -1,0 +1,36 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "iot:Publish"
+        ],
+        "Resource": [
+          "arn:aws:iot:region:account:topic/$aws/certificates/create/json",
+          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json",
+          "arn:aws:iot:region:account:topic/$aws/provisioning-templates/templatename/provision/json"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "iot:Receive",
+          "iot:Subscribe"
+        ],
+        "Resource": [
+          "arn:aws:iot:region:account:topic/$aws/certificates/create/json/accepted",
+          "arn:aws:iot:region:account:topic/$aws/certificates/create/json/rejected",
+          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json/accepted",
+          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json/rejected",
+          "arn:aws:iot:region:account:topic/$aws/provisioning-templates/templatename/provision/json/accepted",
+          "arn:aws:iot:region:account:topic/$aws/provisioning-templates/templatename/provision/json/rejected"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": "iot:Connect",
+        "Resource": "arn:aws:iot:region:account:client/test-*"
+      }
+    ]
+  }
