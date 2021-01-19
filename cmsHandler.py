@@ -42,9 +42,11 @@ class ConnectedMobility():
     __cf = None
     session = None
         
-    def __init__(self, profile, stackname):
+    def __init__(self, profile, stackname, cdfstackname):
         self.profile = profile
         self.stackname = stackname
+        #in a prior version, we could derive the CDF stack name from the resources of the CMS, well that has changed, so now we need to pass in the CDF stack name to get asset library URL
+        self.cdfstackname = cdfstackname
         self.session = boto3.Session(profile_name = profile)
         
         super().__init__()
@@ -64,15 +66,16 @@ class ConnectedMobility():
         if not self.__cdf_outputs:
             self.__cdf_outputs = self.cdf_cf[0][self.cfOutputs]
         return self.__cdf_outputs
-    @property
-    def cdfStackARN(self):
-        if not self.__cdf_stackARN:
-            self.__cdf_stackARN = self.getValuefromResourceDict(self.cf.describe_stack_resources(StackName=self.stackname)[self.cfStackResources], self.cdfStackName)
-        return self.__cdf_stackARN
+#    @property
+#    def cdfStackARN(self):
+#        if not self.__cdf_stackARN:
+#            self.__cdf_stackARN = self.getValuefromResourceDict(self.cf.describe_stack_resources(StackName=self.stackname)[self.cfStackResources], self.cdfStackName)
+#        return self.__cdf_stackARN
+#    @property
     @property
     def cdfSubstackOutputs(self):
         if not self.__cdfSubstackOutputs: 
-            self.__cdfSubstackOutputs = self.cf.describe_stacks(StackName=self.cdfStackARN)[self.cfStacks][0][self.cfOutputs]
+            self.__cdfSubstackOutputs = self.cf.describe_stacks(StackName=self.cdfstackname)[self.cfStacks][0][self.cfOutputs]
         return self.__cdfSubstackOutputs
     @property
     def assetLibraryBaseUrl(self):

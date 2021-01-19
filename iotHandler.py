@@ -1,6 +1,8 @@
 import boto3
 from botocore.exceptions import ClientError
-
+import logging
+import os
+from utils.config_loader import Config
 from iamHandler import IAM
 import json
 
@@ -8,7 +10,16 @@ class IOT():
     __client = None 
     __iam = None
          
-    def __init__(self, profile, roleName, policyArn):
+    def __init__(self, profile, roleName, policyArn, file_path):
+        
+         #Logging
+        logging.basicConfig(level=logging.ERROR)
+        self.logger = logging.getLogger(__name__)
+        
+        config = Config(file_path)
+        self.config_parameters = config.get_section('SETTINGS')
+        self.secure_cert_path = self.config_parameters['SECURE_CERT_PATH']
+        
         self.profile = profile
         self.session = boto3.Session(profile_name = profile)
         self.client = self.session.client('iot')
@@ -142,25 +153,46 @@ class IOT():
    
     def createProvisioningPolicy(self, policyName, provisioningTemplateName, payloadJsonFileName):
         try:
+            version = None
             response = self.getPolicy(policyName)
-            if response == 'ResourceNotFoundException':
-                #open the 
-                with open('assets/' + payloadJsonFileName) as f:
-                    policy = json.load(f)
+            if response != 'ResourceNotFoundException':
+                version = response['defaultVersionId']
+              
+            #open the json
+            with open('assets/' + payloadJsonFileName) as f:
+                policy = json.load(f)
 
-                accountId = self.session.client('sts').get_caller_identity().get('Account')
-                region = self.session.region_name
+            accountId = self.session.client('sts').get_caller_identity().get('Account')
+            region = self.session.region_name
+            
+            policyF = json.dumps(policy).replace("$REGION", region).replace("$ACCOUNT", accountId).replace("$PROVTEMPLATE",provisioningTemplateName )
+                        
+            if version is not None:   
+                print(version) 
+                self.client.delete_policy_version(
+                    policyName=policyName,
+                    policyVersionId=version
+                )
                 
-                policyF = json.dumps(policy).replace("$REGION", region).replace("$ACCOUNT", accountId).replace("$PROVTEMPLATE",provisioningTemplateName )
-                print(policyF)
+                #update or create a new version but set this version as default as it refers to a new provisioning template
+                create_policy_res = self.client.create_policy_version(
+                    policyName=policyName,
+                    policyDocument=policyF,
+                    setAsDefault= True
+                )
+            else:
+                #update or create a new version but set this version as default as it refers to a new provisioning template
+                print(json.dumps(policyF))
                 create_policy_res = self.client.create_policy(
                     policyName=policyName,
-                    policyDocument=json.dumps(policyF)
+                    policyDocument=policyF
                 )
-                return create_policy_res
+                
+                
+            return create_policy_res
         except ClientError as error:
             if error.response['Error']['Code'] == 'EntityAlreadyExists':
-                return 'Role already exists... hence exiting from here'
+                return 'Policy already exists... hence exiting from here'
             else:
                 return 'Unexpected error occurred... Role could not be created', error        
     def createProvisioningPolicyRole(self):
@@ -183,11 +215,7 @@ class IOT():
                 description=templateDescription,
                 templateBody=json.dumps(template),
                 enabled=True,
-                provisioningRoleArn=provisioningRoleArn,
-                #preProvisioningHook={
-                #    'payloadVersion': 'string',
-                #    'targetArn': 'string'
-                #},
+                provisioningRoleArn=provisioningRoleArn
             )
         
             return prov_template_resp['templateArn']
@@ -197,7 +225,13 @@ class IOT():
             else:
                 return 'Unexpected error occurred... Template could not be created', error
             
-    def setupProvisioningTemplate(self, provisioningTemplateName, templateDescription, templatePayloadJsonFileName, policyName, policyPayloadJsonFileName):
+    def setupProvisioningTemplate(self, 
+                                  provisioningTemplateName, 
+                                  templateDescription, 
+                                  templatePayloadJsonFileName, 
+                                  policyName, 
+                                  policyPayloadJsonFileName,
+                                  vin):
         #first check if policy exists
         print("Check for existing provisioning policy...")
         response_prov_policy = self.getProvisioningPolicy(provisioningTemplateName)
@@ -223,10 +257,11 @@ class IOT():
         #create the policy
         print("Creating the policy associated with the provisioning template bootstrap...")
         policy_response = self.createProvisioningPolicy(policyName, provisioningTemplateName, policyPayloadJsonFileName)
+        print(policy_response)
         print("Bootstrap Policy successfully created.")
         #create provisioning certificate
         print("Creating provisioning certificates and writing to local directory...")
-        self.createProvisioningCertificate(True, provisioningTemplateName)
+        self.createProvisioningCertificate(True, provisioningTemplateName, vin)
         print("Certificates created successfully")
         #attach the new certificate to the policy already created
         print("Attaching the boostrap policy to the certificate")
@@ -235,7 +270,7 @@ class IOT():
         return True
     def describeProvisioningTemplate(self, provisioningTemplateName):
         return self.client.describe_provisioning_template(templateName=provisioningTemplateName)
-    def createProvisioningCertificate(self, writeToFile, provisi):
+    def createProvisioningCertificate(self, writeToFile, provisi, vin):
         try:
             certResponse = self.client.create_keys_and_certificate(
                     setAsActive = True
@@ -253,12 +288,15 @@ class IOT():
                     elif element == 'certificateId':
                             self.certificateId = data['certificateId']
             
-            if writeToFile:                        
-                with open('certs/bootstrap-public.pem.key', 'w') as outfile:
+            if writeToFile:
+                path = self.secure_cert_path.format(unique_id=vin)                         
+                os.makedirs(path.format(unique_id=vin), exist_ok=True) 
+    
+                with open(path + '/bootstrap-public.pem.key', 'w') as outfile:
                         outfile.write(self.PublicKey)
-                with open('certs/bootstrap-private.pem.key', 'w') as outfile:
+                with open(path + '/bootstrap-private.pem.key', 'w') as outfile:
                         outfile.write(self.PrivateKey)
-                with open('certs/bootstrap-certificate.pem.crt', 'w') as outfile:
+                with open(path + '/bootstrap-certificate.pem.crt', 'w') as outfile:
                         outfile.write(self.certificatePem)
 
             print('certificateId: %s', self.certificateId)

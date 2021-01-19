@@ -33,11 +33,6 @@
                 "ThingTypeName": "REPLACE"
             },
             "Properties": {
-                "AttributePayload": {
-                    "model_type": {
-                        "Ref": "ModelType"
-                    }
-                },
                 "ThingGroups": [],
                 "ThingName": {
                     "Ref": "SerialNumber"

@@ -1,60 +1,61 @@
 {
-    "MessageId": "{vin}-2020-09-28T16:59:51.248Z",
-    "CreationTimeStamp": "2020-09-30T17:28:51.248Z",
-    "SendTimeStamp": "2020-09-28T17:28:51.248Z",
-    "VIN": "{vin}",
-    "TripId": "{trip_id}",
+    "MessageId": "{$VIN}-{$TIMESTAMP}",
+    "SimulationId": "{$SimID}",
+    "CreationTimeStamp": "{$TIMESTAMP}",
+    "SendTimeStamp": "{$TIMESTAMP}",
+    "VIN": "{$VIN}",
+    "TripId": "{$TripID}",
     "DriverID": "",
     "GeoLocation": {
-        "Latitude": 29.091378,
-        "Longitude": -81.005141,
-        "Altitude": 0,
-        "Heading": 0,
-        "Speed": 0
+      "Latitude": 30.90803207226497,
+      "Longitude": 30.90803207226497,
+      "Altitude": 0,
+      "Heading": 159.90803207226497,
+      "Speed": 103.10882016931925
     },
     "Communications": {
-        "GSM": {
-            "Satelites": "",
-            "Fix": "",
-            "NetworkType": "",
-            "MNC": "",
-            "MCC": "",
-            "LAC": "",
-            "CID": ""
-        },
-        "WiFi": {
-            "NetworkID ": ""
-        },
-        "Wired": {
-            "NetworkID ": ""
-        }
+      "GSM": {
+        "Satelites": "",
+        "Fix": "",
+        "NetworkType": "",
+        "MNC": "",
+        "MCC": "",
+        "LAC": "",
+        "CID": ""
+      },
+      "WiFi": {
+        "NetworkID ": ""
+      },
+      "Wired": {
+        "NetworkID ": ""
+      }
     },
     "Acceleration": {
-        "MaxLongitudinal": {
-            "Axis": 0,
-            "Value": 0
-        },
-        "MaxLateral": {
-            "Axis": 0,
-            "Value": 0
-        }
+      "MaxLongitudinal": {
+        "Axis": 0,
+        "Value": -0.37493163447162203
+      },
+      "MaxLateral": {
+        "Axis": 0,
+        "Value": -0.37493163447162203
+      }
     },
     "Throttle": {
-        "Max": 0,
-        "Average": 0
+      "Max": 11.693368304181401,
+      "Average": 0
     },
     "Speed": {
-        "Max": 0,
-        "Average": 0
+      "Max": 53.10882016931925,
+      "Average": 0
     },
     "Odometer": {
-        "Metres": 14358,
-        "TicksFL": 0,
-        "TicksFR": 0,
-        "TicksRL": 0,
-        "TicksRR": 0
+      "Metres": 67244.36788468927,
+      "TicksFL": 0,
+      "TicksFR": 0,
+      "TicksRL": 0,
+      "TicksRR": 0
     },
-    "Fuel": 0,
-    "Name": "",
-    "OilTemp": 0.1286271
-}
+    "Fuel": 127.47549257669135,
+    "Name": "CRtdESVEf",
+    "OilTemp": 298.52831665785095
+  }

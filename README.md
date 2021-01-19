@@ -10,9 +10,63 @@ This repo contains several scripts necessary to automate the creation of devices
 
 1. The CMS CF was deployed succsesfully, please follow the instructions here: https://quip-amazon.com/hLrnALX7bgCd/Connected-Mobility-Solution-Getting-Started
 
+```bash
+pip install virtualenv
+brew install pyenv-virtualenv
+
+vim ~/.zshrc
+
+# Setup virtualenv home
+export WORKON_HOME=$HOME/.virtualenvs
+source /usr/local/bin/virtualenvwrapper.sh
+
+# Tell pyenv-virtualenvwrapper to use pyenv when creating new Python environments
+export PYENV_VIRTUALENVWRAPPER_PREFER_PYVENV="true"
+
+# Set the pyenv shims to initialize
+if command -v pyenv 1>/dev/null 2>&1; then
+ eval "$(pyenv init -)"
+fi
+
+mkdir ~/.virtualenvs
+
+pyenv global 3.6.12
+
+pyenv virtualenv 3.6.12 CMS
+
+pip install nvm
+
+nvm install 12.18.2
+
+nvm use 12.18.2 
+
+npm install -g pnpm@3.5.3
+
+brew install --cask docker
+````
+```
+./infrastructure/deploy-core.bash -e cmsdev2 -b givenand-cms2-s3 -p givenand-kp-cms2 -R us-west-2 -P givenand-cms -B  -y s3://givenand-cms2-s3/template-snippets/ -i 0.0.0.0/0 
+
+./infrastructure/deploy.bash -b givenand-cms2-s3 -h givenand@amazon.com -B -R us-west-2 -K givenand-cms -e cmsdev2 -P givenand-cms -p givenand-kp-cms2
+```
 2. An AWS CLI profile is setup that has administrator access to the account where CMS is deployed.  This account will be referenced in the script parameters as "profile"
 
 3. A valid VIN will be used as the thing name and subsequent simulations
+
+# Credentials
+
+Before you can deploy an application, be sure you have credentials configured. If you have previously configured your machine to run boto3 (the AWS SDK for Python) or the AWS CLI then you can skip this section.
+
+If this is your first time configuring credentials for AWS you can follow these steps to quickly get started:
+
+$ mkdir ~/.aws
+$ cat >> ~/.aws/config
+[default]
+aws_access_key_id=YOUR_ACCESS_KEY_HERE
+aws_secret_access_key=YOUR_SECRET_ACCESS_KEY
+region=YOUR_REGION (such as us-west-2, us-west-1, etc)
+
+If you want more information on all the supported methods for configuring credentials, see the boto3 docs.
 
 # Overview
 
@@ -35,3 +89,10 @@ The setupSingleVehicle.py will perform all the necessary steps to create a singl
 6. When the device connects to this reserved topic a new certificate and public/private key is generated and downloaded to the device.  The device then uses that combination to attach to CMS topics.
 
 7. From there, we can use the generateTelemetry.py to create payloads for devices generating routes and simulating vehicle traffic within the UI.
+
+# Creating your Device
+
+The next thing we will do is run the script to setup the device
+
+
+# Create some telemetry

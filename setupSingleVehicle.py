@@ -6,7 +6,6 @@ import sys
 import requests
 import uuid
 import os
-from pyfiglet import Figlet
 from urllib.request import urlopen
 from provisioningHandler import ProvisioningHandler
 from utils.config_loader import Config
@@ -60,7 +59,7 @@ log = logging.getLogger('deploy.cf.create_or_update')  # pylint: disable=C0103
 def callback(payload):
     print(payload)
     
-def main(profile, stackname, vin, firstname, lastname, username, password):
+def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, password):
     
    #Set Config path
    CONFIG_PATH = 'config.ini'
@@ -71,6 +70,7 @@ def main(profile, stackname, vin, firstname, lastname, username, password):
    bootstrap_cert = config_parameters['CLAIM_CERT']
    root_cert_url = config_parameters['AWS_ROOT_CERT_URL']
    root_cert = config_parameters['ROOT_CERT']
+   root_cert_path = config_parameters['ROOT_CERT_PATH']
    default_role_name = config_parameters['DEFAULT_ROLE_NAME']
    default_role_arn = config_parameters['POLICY_ARN_IOT']
    deviceMaker = config_parameters['DEVICE_MAKER']
@@ -79,13 +79,13 @@ def main(profile, stackname, vin, firstname, lastname, username, password):
    provisioning_policy_file_name = config_parameters['POLICY_JSON']
    provisioning_template_file_name = config_parameters['TEMPLATE_JSON']
    provisioning_policy_name = config_parameters['PROVISIONING_POLICY_NAME']
-    
+   
    externalId = uuid.uuid4().hex
    thingName = vin
 
    c = Cognito(profile)
-   m = ConnectedMobility(profile, stackname)
-   i = IOT(profile, default_role_name, default_role_arn)   
+   m = ConnectedMobility(profile, stackname, cdfstackname)
+   i = IOT(profile, default_role_name, default_role_arn, CONFIG_PATH)   
    provisioner = ProvisioningHandler(CONFIG_PATH, provisioning_template_name, thingName)
             
    if not c.checkCognitoUser(username,m.userPoolId):
@@ -122,11 +122,12 @@ def main(profile, stackname, vin, firstname, lastname, username, password):
    print("Registering Device ...")          
    response = m.registerDevice(externalId, thingName, authorization)
    
-   if response.status_code == 201 or response.status_code == 204:
+   if response.status_code == 200 or response.status_code == 204 or response.status_code == 201:
        print("Device registered successfully...")
    elif response.status_code == 409:
        print("Device already registered.  Will attempt to activate the device...")
    else:
+       print(response)
        print("Error registering the device.  Exiting.")
        exit()
       
@@ -152,12 +153,18 @@ def main(profile, stackname, vin, firstname, lastname, username, password):
    #We will use fleet provisioning to take a bootstrap certificate, this bootstrap certificate is allowed to connect to specific topics that will allow for the creation
    #of the permananet certificate.  The permanent certificate is then downloaded to the /certs folder and used to connect to the telemetry topics 
    print("Begin setting up provisioning templates and certificates...")
-   v = i.setupProvisioningTemplate(provisioning_template_name,provisioning_template_description, provisioning_template_file_name, provisioning_policy_name, provisioning_policy_file_name)
+   v = i.setupProvisioningTemplate(
+       provisioning_template_name,
+       provisioning_template_description, 
+       provisioning_template_file_name, 
+       provisioning_policy_name, 
+       provisioning_policy_file_name,
+       vin)
 
    if v == True:
     try: #to get root cert if it does not exist
         print("Getting root certificate")
-        root_path = "{}/{}".format( secure_cert_path, root_cert)
+        root_path = "{}/{}".format( root_cert_path, root_cert)
         if not os.path.exists( root_path):
             response = urlopen(root_cert_url)
             content = response.read().decode('utf-8')
@@ -169,7 +176,8 @@ def main(profile, stackname, vin, firstname, lastname, username, password):
             exit()
     print("Root certificate downloaded to certificates directory.")
     try:
-            with open("{}/{}".format(secure_cert_path, bootstrap_cert)) as f:
+            print("{}/{}".format(secure_cert_path.format(unique_id=vin), bootstrap_cert))
+            with open("{}/{}".format(secure_cert_path.format(unique_id=vin), bootstrap_cert), 'r') as f:
             # Call super-method to perform aquisition/activation
             # of certs, association of thing, etc. Returns general
             # purpose callback at this point.
@@ -177,7 +185,8 @@ def main(profile, stackname, vin, firstname, lastname, username, password):
                 provisioner.get_official_certs(callback)
     except IOError:
             print("### Bootstrap cert non-existent. Official cert may already be in place.")          
-            
+    
+                
 
 if __name__ == "__main__":
     
@@ -185,6 +194,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-p", "--profile", action="store", dest="profile", default=None, help="AWS CLI profile that has admin access to your CMS stack")
     parser.add_argument("-s", "--stackName", action="store", dest="stackname", default=None, help="Name given to your CMS stack")
+    parser.add_argument("-c", "--CDFstackName", action="store", dest="cdfstackname", default=None, help="Name given to your CDF stack (cdf-core-{cms stack name}")
     parser.add_argument("-v", "--VIN", action="store", dest="vin", default=None, help="VIN for your vehicle")
     parser.add_argument("-f", "--FirstName", action="store", dest="firstname", help="First Name for CMS User")
     parser.add_argument("-l", "--LastName", action="store", dest="lastname", default=None, help="Last Name for CMS User")
@@ -193,4 +203,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
  
-    main(args.profile, args.stackname, args.vin, args.firstname, args.lastname, args.username, args.password)
+    main(args.profile, args.stackname, args.cdfstackname, args.vin, args.firstname, args.lastname, args.username, args.password)
