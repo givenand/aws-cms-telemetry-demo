@@ -10,40 +10,6 @@ This repo contains several scripts necessary to automate the creation of devices
 
 1. The CMS CF was deployed succsesfully, please follow the instructions here: https://quip-amazon.com/hLrnALX7bgCd/Connected-Mobility-Solution-Getting-Started
 
-```bash
-pip install virtualenv
-brew install pyenv-virtualenv
-
-vim ~/.zshrc
-
-# Setup virtualenv home
-export WORKON_HOME=$HOME/.virtualenvs
-source /usr/local/bin/virtualenvwrapper.sh
-
-# Tell pyenv-virtualenvwrapper to use pyenv when creating new Python environments
-export PYENV_VIRTUALENVWRAPPER_PREFER_PYVENV="true"
-
-# Set the pyenv shims to initialize
-if command -v pyenv 1>/dev/null 2>&1; then
- eval "$(pyenv init -)"
-fi
-
-mkdir ~/.virtualenvs
-
-pyenv global 3.6.12
-
-pyenv virtualenv 3.6.12 CMS
-
-pip install nvm
-
-nvm install 12.18.2
-
-nvm use 12.18.2 
-
-npm install -g pnpm@3.5.3
-
-brew install --cask docker
-````
 ```
 ./infrastructure/deploy-core.bash -e cmsdev2 -b givenand-cms2-s3 -p givenand-kp-cms2 -R us-west-2 -P givenand-cms -B  -y s3://givenand-cms2-s3/template-snippets/ -i 0.0.0.0/0 
 
@@ -70,7 +36,7 @@ If you want more information on all the supported methods for configuring creden
 
 # Overview
 
-The setupSingleVehicle.py will perform all the necessary steps to create a single vehicle in CMS.  The script uses the CF template exports to build the necessary API endpoints, get the necessary certificateIds and user credentials needed to make changes
+The setupSingleVehicle.py will perform all the necessary steps to create a single vehicle in CMS.  The script uses the CF template exports to build the necessary API endpoints, get the necessary certificateIds and user credentials needed to make changes.
 
 1. The script will first make modifications to the Cognito User Pool created by default by the CMS CF template.  This will allow for automated creation of users and authentication, rather than a manual method via the Cognito front-end
 
@@ -84,15 +50,26 @@ The setupSingleVehicle.py will perform all the necessary steps to create a singl
 
 4. At this point, we have created a CMS user and created a single vehicle.  The next step is provisioning certificates to the device such that it can connect to IoT Core
 
-5. To create device certificates for a fleet, the decision was made to use just-in-time-registration which provides a bootstrap certificate to place on the device during manufacturing.  This certificate will allow the device to connect and subscribe to reserved IoT Core topics which will then provision the production certificate for the device.
+5. To create device certificates for a fleet, the decision was made to use just-in-time registration (JITR) which provides a bootstrap certificate to place on the device during manufacturing.  This certificate will allow the device to connect and subscribe to reserved IoT Core topics which will then provision the production certificate for the device.
 
-6. When the device connects to this reserved topic a new certificate and public/private key is generated and downloaded to the device.  The device then uses that combination to attach to CMS topics.
+6. When the device connects to this reserved topic a new certificate and public/private key is generated and downloaded to the device.  The device then uses that combination to attach to CMS topics.  For this demo, we will use virtual devices, essentially a directory with a unique vehicle Id (VIN) and the public/private certificate in the project folder
 
 7. From there, we can use the generateTelemetry.py to create payloads for devices generating routes and simulating vehicle traffic within the UI.
 
 # Creating your Device
 
-The next thing we will do is run the script to setup the device
-
+1. TODO
 
 # Create some telemetry
+
+2. To create a CSV of lat/long coordinates to create a proper simulation of a vehicle along a route, the quickest implementation is to utilize an online maps resource and export a route.  This will provide the most accurate data to simulate your trips and begin build upon other features available in CMS.  Below is the procedure to develop that data to be stored in assets/latLong.csv as exported.
+
+    a. Go to maps.google.com 
+    b. Click on the hamburger menu and select 'Your Places'
+    c. At the bottom of the sidebar, select 'CREATE MAP'
+    d. When the map creation interface loads in a new tab, click the 'Add directions' under the search bar
+    e. Put in two local landmarks in the city of your choice and the route should appear on the map
+    f. Click on the 'Untitled Map' dot menu, and select 'Export to KML/KMZ'
+    g. Select the dropdown and select just the route directions and select download.
+    h. Find the Placemark/coordinates within the markup language and copy that section (without the tags) into your latLong.csv
+    

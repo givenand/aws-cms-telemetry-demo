@@ -51,12 +51,12 @@ class ProvisioningHandler:
         
         """
         if self.isRotation:
-            self.logger.info('##### Connecting with Bootstrap certificate #####')
-            print('##### Connecting with Bootstrap certificate #####')
+            self.logger.info('Connecting with Bootstrap certificate ')
+            print('Connecting with Bootstrap certificate ')
             self.get_current_certs()
         else:
-            self.logger.info('##### Connecting with Bootstrap certificate #####')
-            print('##### Connecting with Bootstrap certificate #####')
+            self.logger.info('Connecting with Bootstrap certificate ')
+            print('Connecting with Bootstrap certificate ')
 
         event_loop_group = io.EventLoopGroup(1)
         host_resolver = io.DefaultHostResolver(event_loop_group)
@@ -185,23 +185,23 @@ class ProvisioningHandler:
         
         # A response has been recieved from the service that contains certificate data. 
         if 'certificateId' in json_data:
-            self.logger.info('##### Success. Saving keys to the device! #####')
-            print('##### Success. Saving keys to the device! #####')
+            self.logger.info('Success. Saving keys to the device! ')
+            print('Success. Saving keys to the device! ')
             self.assemble_certificates(json_data)
         
         # A response contains acknowledgement that the provisioning template has been acted upon.
         elif 'deviceConfiguration' in json_data:
             if self.isRotation:
-                self.logger.info('##### Activation Complete #####')
-                print('##### Activation Complete#####')
+                self.logger.info('Activation Complete ')
+                print('Activation Complete')
             else:
-                self.logger.info('##### Certificate Activated and device {} associated #####'.format(json_data['thingName']))
-                print('##### ertificate Activated and device {} associated #####'.format(json_data['thingName']))
+                self.logger.info('Certificate Activated and device {} associated '.format(json_data['thingName']))
+                print('ertificate Activated and device {} associated '.format(json_data['thingName']))
 
             self.validate_certs()
         elif 'service_response' in json_data:
             self.logger.info(json_data)
-            print('##### Successfully connected with production certificates #####')
+            print('Successfully connected with production certificates ')
         else:
             self.logger.info(json_data)
 
@@ -254,11 +254,11 @@ class ProvisioningHandler:
             on_message_callback() - providing acknowledgement that the provisioning template was processed.
         """
         if self.isRotation:
-            self.logger.info('##### Validating expiration and activating certificate #####')
-            print('##### Validating expiration and activating certificate #####')
+            self.logger.info('Validating expiration and activating certificate ')
+            print('Validating expiration and activating certificate ')
         else:
-            self.logger.info('#####  Activating Certificate and associating with device #####')
-            print('##### Activating Certificate and associating with device #####')
+            self.logger.info(' Activating Certificate and associating with device ')
+            print('Activating Certificate and associating with device ')
                 
         register_template = {"certificateOwnershipToken": token, "parameters": {"SerialNumber": serial}}
         
@@ -272,12 +272,12 @@ class ProvisioningHandler:
     def validate_certs(self):
         """Responsible for (re)connecting to IoTCore with the newly provisioned/activated certificate - (first class citizen cert)
         """
-        self.logger.info('##### Connecting with production certificate #####')
-        print('##### Connecting with production certificate #####')
+        self.logger.info('Connecting with production certificate ')
+        print('Connecting with production certificate ')
         self.cert_validation_test()
         self.new_cert_pub_sub()
-        print("##### Activated and tested credentials ({}, {}). #####".format(self.new_key_name, self.new_cert_name))
-        print("##### Files saved to {} #####".format(self.secure_cert_path.format(unique_id=self.unique_id)))
+        print("Activated and tested credentials ({}, {}). ".format(self.new_key_name, self.new_cert_name))
+        print("Files saved to {} ".format(self.secure_cert_path.format(unique_id=self.unique_id)))
 
     def cert_validation_test(self):
         event_loop_group = io.EventLoopGroup(1)

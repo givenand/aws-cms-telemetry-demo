@@ -11,6 +11,7 @@ class ConnectedMobility():
     assetLibraryUrl = 'AssetLibraryApiGatewayUrl'
     facadeApiGatewayUrl = 'FacadeApiGatewayUrl'
     cfUuserPoolClientId = 'UserPoolClientId'
+    cfCloudfrontDomain = 'CloudfrontDomain'
     cfUserPoolId = 'UserPoolId'
     cfCertficateId = 'CertificateId'
     CONFIG_PATH = 'config.ini'
@@ -28,6 +29,7 @@ class ConnectedMobility():
     cfOutputKey = 'OutputKey'
     cfOutputValue = 'OutputValue'
     
+    __cloudFrontDomainUrl = ''
     __assetLibraryBaseUrl = ''
     __cmscfResourcesArn = ''
     __cognitoId = ''
@@ -87,6 +89,11 @@ class ConnectedMobility():
         if self.__facadeEndpointUrl == '':
             self.__facadeEndpointUrl = self.getValuefromDict(self.cdfOutputs, self.facadeApiGatewayUrl)
         return self.__facadeEndpointUrl
+    @property
+    def cloudFrontDomainUrl(self):
+        if self.__cloudFrontDomainUrl == '':
+            self.__cloudFrontDomainUrl = self.getValuefromDict(self.cdfOutputs, self.cloudFrontDomainUrl)
+        return self.__cloudFrontDomainUrl
     @property
     def certificateId(self):
         if self.__certificateId == '':

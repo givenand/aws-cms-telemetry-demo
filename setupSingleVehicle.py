@@ -186,7 +186,7 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
     except IOError:
             print("### Bootstrap cert non-existent. Official cert may already be in place.")          
     
-                
+    print("Vehicle setup sucessfully, please visit http://{} to login with your user and see your vehicle".format(m.cloudFrontDomainUrl))            
 
 if __name__ == "__main__":
     
