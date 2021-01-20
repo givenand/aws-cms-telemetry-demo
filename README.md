@@ -43,10 +43,10 @@ The setupSingleVehicle.py will perform all the necessary steps to create a singl
 2. The script will then take this cognito client Id and pass it into CMS APIs to authenticate to those front-end APIs
 
 3. From here, we now need to follow the setup process for a vehicle, which is the following:
-    a. Create a device supplier (Denso, NXP, etc)
-    b. Register a device (TCU, ECU, etc)
-    c. Activate a device
-    d. Assosciate a device to a user
+    1. Create a device supplier (Denso, NXP, etc)
+    2. Register a device (TCU, ECU, etc)
+    3. Activate a device
+    4. Assosciate a device to a user
 
 4. At this point, we have created a CMS user and created a single vehicle.  The next step is provisioning certificates to the device such that it can connect to IoT Core
 
@@ -64,12 +64,12 @@ The setupSingleVehicle.py will perform all the necessary steps to create a singl
 
 2. To create a CSV of lat/long coordinates to create a proper simulation of a vehicle along a route, the quickest implementation is to utilize an online maps resource and export a route.  This will provide the most accurate data to simulate your trips and begin build upon other features available in CMS.  Below is the procedure to develop that data to be stored in assets/latLong.csv as exported.
 
-    a. Go to maps.google.com 
-    b. Click on the hamburger menu and select 'Your Places'
-    c. At the bottom of the sidebar, select 'CREATE MAP'
-    d. When the map creation interface loads in a new tab, click the 'Add directions' under the search bar
-    e. Put in two local landmarks in the city of your choice and the route should appear on the map
-    f. Click on the 'Untitled Map' dot menu, and select 'Export to KML/KMZ'
-    g. Select the dropdown and select just the route directions and select download.
-    h. Find the Placemark/coordinates within the markup language and copy that section (without the tags) into your latLong.csv
-    
+    1. Go to maps.google.com 
+    2. Click on the hamburger menu and select 'Your Places'
+    3. At the bottom of the sidebar, select 'CREATE MAP'
+    4. When the map creation interface loads in a new tab, click the 'Add directions' under the search bar
+    5. Put in two local landmarks in the city of your choice and the route should appear on the map
+    6. Click on the 'Untitled Map' dot menu, and select 'Export to KML/KMZ'
+    7. Select the dropdown and select just the route directions and select download.
+    8. Find the Placemark/coordinates within the markup language and copy that section (without the tags) into your latLong.csv
+
