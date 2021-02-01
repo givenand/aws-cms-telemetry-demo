@@ -3,12 +3,12 @@
 This repo contains several scripts necessary to automate the creation of devices in Connected Mobility Solution
 
 ```bash
-./setupSingleVehicle.py --profile=givenand-cms --stackName=cms-dev1 --VIN=LSH14J4C4LA046511 --FirstName=Test --LastName=User --Username=testCMSUser1 --Password=Testing1234
+./setupSingleVehicle.py --profile=givenand-cms --stackName=cms-dev1 --VIN=LSH14J4C4LA046511 --FirstName=Test --LastName=User --Username=testCMSUser1 --Password=Testing1234 --CDFstackName cdf-core-development
 ```
 
 # Requirements
 
-1. The CMS CF was deployed succsesfully, please follow the instructions here: https://quip-amazon.com/hLrnALX7bgCd/Connected-Mobility-Solution-Getting-Started
+1. The CMS CF was deployed succsesfully, please follow the onboarding instructions
 
 ```
 ./infrastructure/deploy-core.bash -e cmsdev2 -b givenand-cms2-s3 -p givenand-kp-cms2 -R us-west-2 -P givenand-cms -B  -y s3://givenand-cms2-s3/template-snippets/ -i 0.0.0.0/0 
@@ -50,15 +50,35 @@ The setupSingleVehicle.py will perform all the necessary steps to create a singl
 
 4. At this point, we have created a CMS user and created a single vehicle.  The next step is provisioning certificates to the device such that it can connect to IoT Core
 
-5. To create device certificates for a fleet, the decision was made to use just-in-time registration (JITR) which provides a bootstrap certificate to place on the device during manufacturing.  This certificate will allow the device to connect and subscribe to reserved IoT Core topics which will then provision the production certificate for the device.
+5. To create device certificates for a fleet, the decision was made to use just-in-time provisioning (JITP) which provides a bootstrap certificate to place on the device during manufacturing.  This certificate will allow the device to connect and subscribe to reserved IoT Core topics which will then provision the production certificate for the device.
 
-6. When the device connects to this reserved topic a new certificate and public/private key is generated and downloaded to the device.  The device then uses that combination to attach to CMS topics.  For this demo, we will use virtual devices, essentially a directory with a unique vehicle Id (VIN) and the public/private certificate in the project folder
+6. When the device connects to this reserved topic a new certificate and public/private key is generated and downloaded to the device.  The device then uses that combination to subscribe to CMS topics.  For this demo, we will use virtual devices, essentially a directory with a unique vehicle Id (VIN) and the public/private certificate in the project folder
 
-7. From there, we can use the generateTelemetry.py to create payloads for devices generating routes and simulating vehicle traffic within the UI.
+7. When running the setupSingleVehicle.py script, it will attempt to publish a single telemetry object to the /dt/cvra/+/data topic which is where telemetry data for the vehicle is published.  This initial load of data is necessary to show your vehicle in the UI.  After running the script, the output should show the cloudfront UI URL and the user can click to login with the user they created in the script.
+
+Sample output:
+```
+Vehicle setup sucessfully, please visit http://d3lqxcqk33ijcr.cloudfront.net to login with your user and see your vehicle
+```
+
+8. From there, we can use the generateTelemetry.py to create payloads for devices generating routes and simulating vehicle traffic within the UI.
 
 # Creating your Device
 
-1. TODO
+1. To generate telemetry, we can use the generate telemetry script, which will take the VIN that was just used to create
+```
+./generateTelemetry.py --VIN LSH14J4C4KA097044
+```
+2. This should post telemetry data (latitude/longitude) to the proper topic every second from the latLong2.csv file.  This data is generated using google maps and other routes can be generated if the below steps are followed.
+
+3. Upon execution, you should see outputs like the below and your vehicle icon should be moving on the screen.
+
+```
+Generating Trip ID of 09ec10c7310d44d988cfb0ff5cdb3b98                                                                            Begin publishing trip data.  Will Begin publishing trip data.  Will publish 248 payloads
+Successfully published coordinates Coords(x=33.77521, y=-84.39609) of 248
+Successfully published coordinates Coords(x=33.77521, y=-84.39606) of 248
+Successfully published coordinates Coords(x=33.77521, y=-84.39605) of 248
+```
 
 # Create some telemetry
 
