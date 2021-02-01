@@ -1,0 +1,10 @@
+{
+    "messageid" : "1AZVT16XXEE10005-2020-04-22T22:21:26.229Z",
+    "creationtimestamp" : "2020-04-22T22:21:26.229Z",
+    "sendtimestamp" : "2020-04-22T22:21:26.229Z",
+    "vin" : "1AZVT16XXEE10005",
+    "dtc" : {
+      "code" : "P1734",
+      "changed" : "true"
+    }
+}

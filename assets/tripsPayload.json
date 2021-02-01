@@ -1,0 +1,22 @@
+{
+    "tripsummary" : {
+        "duration" : 1397098,
+        "distance" : 23.312640441316034,
+        "endlocation" : {
+            "altitude" : 0,
+            "latitude" : 36.38873030604302,
+            "longitude" : -114.88766981109507
+        },
+        "fuel" : 559.441033099354,
+        "starttime" : "2020-04-06T18:27:49.475Z",
+        "startlocation" : {
+            "altitude" : 0,
+            "latitude" : 36.2523,
+            "longitude" : -115.0112
+        }
+    },
+    "creationtimestamp" : "2020-04-06T18:51:06.573Z",
+    "vin" : "5AZHG76KXGA10001",
+    "tripid" : "H8TRucIRX",
+    "sendtimestamp" : "2020-04-06T18:51:06.573Z"
+}
