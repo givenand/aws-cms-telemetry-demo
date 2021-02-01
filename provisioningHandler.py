@@ -220,7 +220,7 @@ class ProvisioningHandler:
 
         os.makedirs(self.secure_cert_path.format(unique_id=self.unique_id), exist_ok=True) 
         
-        self.new_cert_name = '{}-certificate.pem.crt'.format(self.new_key_root)
+        self.new_cert_name = 'production-certificate.pem.crt' ##.format(self.new_key_root)
         ### Create certificate
         f = open('{}/{}'.format(self.secure_cert_path.format(unique_id=self.unique_id), self.new_cert_name), 'w+')
         f.write(payload['certificatePem'])
@@ -228,7 +228,7 @@ class ProvisioningHandler:
         
 
         ### Create private key
-        self.new_key_name = '{}-private.pem.key'.format(self.new_key_root)
+        self.new_key_name = 'production-private.pem.key' ##.format(self.new_key_root)
         f = open('{}/{}'.format(self.secure_cert_path.format(unique_id=self.unique_id), self.new_key_name), 'w+')
         f.write(payload['privateKey'])
         f.close()

@@ -83,11 +83,19 @@ def main(vin):
    print("Generating Trip ID of {}".format(tripId))
    latLongDict = payloadhandler.generateLatLongFromCSV()
    print("Begin publishing trip data.  Will publish {} payloads".format(len(latLongDict)))
+   startCoords = next(iter(latLongDict))
+   endCoords = list(latLongDict)[-1]
+   startTime = payloadhandler.getTimestampMS()
    for i in latLongDict:
        payload = payloadhandler.getPayload( i, tripId, CLIENT_ID)
        payloadhandler.publishPayload(test_MQTTClient, payload, CLIENT_ID)
        print("Successfully published coordinates {} of {}".format(i, len(latLongDict)))
        time.sleep(1)
+   
+   trippayload = payloadhandler.getTripPayload(startTime, startCoords, endCoords, tripId, CLIENT_ID)
+   payloadhandler.publishTripPayload(test_MQTTClient, trippayload, CLIENT_ID) 
+   
+   print("Trip data published sucessfully")   
    exit()
            
 if __name__ == "__main__":

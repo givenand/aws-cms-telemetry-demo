@@ -19,8 +19,13 @@ class payloadHandler():
         config = Config(file_path)
         self.config_parameters = config.get_section('SETTINGS')
         self.topic_name = self.config_parameters['TOPIC_NAME']
+        self.trips_topic_name = self.config_parameters['TRIP_TOPIC_NAME']
+        self.dtc_topic_name = self.config_parameters['DTC_TOPIC_NAME']
         self.csv_location = self.config_parameters['CSV_LOCATION']
         self.payload_location = self.config_parameters['PAYLOAD_LOCATION']
+        self.trips_payload_location = self.config_parameters['TRIP_PAYLOAD_LOCATION']
+        self.dtc_payload_location = self.config_parameters['DTC_PAYLOAD_LOCATION']
+        
     def get_value(self, data,lookup):  # Or whatever definition you like
         res = data
         for item in lookup:
@@ -45,12 +50,26 @@ class payloadHandler():
             return structure
     
     def publishPayload(self, mqttclient, payload, vin):
-        new_cert_topic = self.topic_name.format(deviceid=vin)
+        vehicle_topic = self.topic_name.format(deviceid=vin)
         mqttclient.publish(
-            topic=new_cert_topic,
+            topic=vehicle_topic,
             payload=payload,
             qos=mqtt.QoS.AT_LEAST_ONCE)
 
+    def publishTripPayload(self, mqttclient, payload, vin):
+        trip_topic = self.trips_topic_name.format(deviceid=vin)
+        mqttclient.publish(
+            topic=trip_topic,
+            payload=payload,
+            qos=mqtt.QoS.AT_LEAST_ONCE)
+
+    def publishDTCPayload(self, mqttclient, payload, vin):
+        dtc_topic = self.dtc_topic_name.format(deviceid=vin)
+        mqttclient.publish(
+            topic=dtc_topic,
+            payload=payload,
+            qos=mqtt.QoS.AT_LEAST_ONCE)
+        
     def getPayload(self, coords, tripId, vin):
         with open(self.payload_location) as f:
             template = json.load(f)
@@ -66,7 +85,39 @@ class payloadHandler():
         template["VIN"] = vin
 
         return json.dumps(template)
+    
+    def getTripPayload(self, startTime, startCoords, endCoords, tripId, vin):
+        with open(self.trips_payload_location) as f:
+            template = json.load(f)
         
+        ts = str(self.getTimestampMS())
+        template["creationtimestamp"] = ts        
+        template["vin"] = vin
+        template["tripid"] = tripId
+        template["sendtimestamp"] = ts
+        
+        template["tripsummary"]["endlocation"]["latitude"] = endCoords.x
+        template["tripsummary"]["endlocation"]["longitude"] = endCoords.y
+
+        template["tripsummary"]["startlocation"]["latitude"] = startCoords.x
+        template["tripsummary"]["startlocation"]["longitude"] = startCoords.y
+
+        template["tripsummary"]["starttime"] = startTime
+        return json.dumps(template)
+    
+    def getDTCPayload(self, dtc, vin):
+        with open(self.dtc_payload_location) as f:
+            template = json.load(f)
+        
+        ts = str(self.getTimestampMS())
+        template["messageid"] = vin + '-' + ts
+        template["creationtimestamp"] = ts
+        template["sendtimestamp"] = ts
+        template["vin"] = vin
+        template["dtc"]["code"] = dtc
+        
+        return json.dumps(template)
+    
     def getTimestampMS(self):
         return datetime.now().astimezone().isoformat()    
 
@@ -113,7 +164,7 @@ class payloadHandler():
     def generateInitialCoordinatesFromCSV(self):
         coords = namedtuple("Coords", ['x', 'y'])
         a_list = []
-        with open('assets/latLong.csv') as csvfile:
+        with open('assets/latLong2.csv') as csvfile:
             reader = csv.reader(csvfile,delimiter=",")
             for row in reader:
                 a_list.append(coords(float(row[1]), float(row[0])))

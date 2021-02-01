@@ -92,7 +92,7 @@ class ConnectedMobility():
     @property
     def cloudFrontDomainUrl(self):
         if self.__cloudFrontDomainUrl == '':
-            self.__cloudFrontDomainUrl = self.getValuefromDict(self.cdfOutputs, self.cloudFrontDomainUrl)
+            self.__cloudFrontDomainUrl = self.getValuefromDict(self.cdfOutputs, self.cfCloudfrontDomain)
         return self.__cloudFrontDomainUrl
     @property
     def certificateId(self):
