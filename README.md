@@ -43,7 +43,7 @@ The setupSingleVehicle.py will perform all the necessary steps to create a singl
 2. The script will then take this cognito client Id and pass it into CMS APIs to authenticate to those front-end APIs
 
 3. From here, we now need to follow the setup process for a vehicle, which is the following:
-    1. Create a device supplier (Denso, NXP, etc)
+    1. Create a device supplier 
     2. Register a device (TCU, ECU, etc)
     3. Activate a device
     4. Assosciate a device to a user
