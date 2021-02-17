@@ -196,11 +196,11 @@ class ConnectedMobility():
 
         return response
     
-    def activateDevice(self, externalId, thingName, vin, authorization) -> None:
+    def activateDevice(self, deviceMaker, externalId, thingName, vin, authorization) -> None:
         url = "{0}/suppliers/{1}/devices/{2}/activate"
         url = url.format(self.facadeEndpointUrl, externalId, thingName)
-        payload = payload='{{\n    \"vehicle\": {{\n        \"make\": \"DENSO\",\n        \"model\": \"DN\",\n        \"modelYear\": 2019,\n        \"marketCode\": \"NA\",\n        \"vin\": \"{0}\",\n        \"bodyType\": \"Saloon\",\n        \"fuelType\": \"Gas\",\n        \"transmissionType\": \"Auto\",\n        \"transmissionAutoType\": \"7-speed\",\n        \"colorCode\": \"B1B!\",\n        \"iviType\": \"Premium\",\n        \"ecus\": [{{\n            \"type\": \"tcu\",\n            \"id\": \"{1}\",\n            \"softwareVersion\": \"1.9.1\"\n        }}]\n    }}\n}}'
-        payload = payload.format(vin, thingName)
+        payload = payload='{{\n    \"vehicle\": {{\n        \"make\": \"{0}\",\n        \"model\": \"DN\",\n        \"modelYear\": 2019,\n        \"marketCode\": \"NA\",\n        \"vin\": \"{1}\",\n        \"bodyType\": \"Saloon\",\n        \"fuelType\": \"Gas\",\n        \"transmissionType\": \"Auto\",\n        \"transmissionAutoType\": \"7-speed\",\n        \"colorCode\": \"B1B!\",\n        \"iviType\": \"Premium\",\n        \"ecus\": [{{\n            \"type\": \"tcu\",\n            \"id\": \"{2}\",\n            \"softwareVersion\": \"1.9.1\"\n        }}]\n    }}\n}}'
+        payload = payload.format(deviceMaker, vin, thingName)
         headers = {
             'Authorization': authorization,
             'Accept': self.cAcceptHeader,
