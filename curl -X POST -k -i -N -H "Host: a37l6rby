@@ -1,0 +1,73 @@
+git clone https://git-codecommit.us-west-2.amazonaws.com/v1/repos/cdf-auto-solution
+
+git remote set-url origin https://git-codecommit.us-west-2.amazonaws.com/v1/repos/cdf-auto-solution
+
+git remote remove origin
+
+git remote add origin https://git-codecommit.us-west-2.amazonaws.com/v1/repos/cdf-auto-solution
+
+git remote -v
+
+git checkout -b master
+
+git add .
+
+git commit -m "Initial commit"
+
+
+arn:aws:iam::633228429465:role/CrossAccountRepositoryContributorRole
+
+
+# AWS CLI v2
+sudo pip3 uninstall awscli
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+rm -rf aws/ awscliv2.zip
+
+# basic package dependencies
+sudo apt-get install jq
+
+# setup Node.js dependencies
+nvm install v12.18.2
+nvm use v12.18.2
+npm install -g pnpm@3.5.3
+
+INSTANCEID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+
+# Get the ID of the Amazon EBS volume associated with the instance.
+VOLUMEID=$(aws ec2 describe-instances \
+  --instance-id $INSTANCEID \
+  --query "Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId" \
+  --output text)
+
+# Resize the EBS volume.
+aws ec2 modify-volume --volume-id $VOLUMEID --size 25
+
+# Wait for the resize to finish.
+while [ \
+  "$(aws ec2 describe-volumes-modifications \
+    --volume-id $VOLUMEID \
+    --filters Name=modification-state,Values="optimizing","completed" \
+    --query "length(VolumesModifications)"\
+    --output text)" != "1" ]; do
+sleep 1
+done
+
+sudo growpart /dev/nvme0n1 1
+sudo resize2fs /dev/nvme0n1p1
+
+
+User name
+givenand-at-157731826412
+Password
+QPj5OgnrW4C07+tdT8468U4Rwz33hlRXWIrSEbMD46w= 
+
+Administrator:~/environment/cdf-core/source (sb-stable) $ pnpm run clean && pnpm install --force && pnpm run build
+rm -rf node_modules
+rm -f package-lock.json
+rm ..packages/services/simmulation*/node_modules
+
+npm uninstall inversify
+
+npm ls -g --json --depth=0 |   jq -r '.dependencies|keys-["npm"]|join("\n")' |   xargs npm rm -g
