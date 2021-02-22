@@ -131,7 +131,7 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
        print("Error registering the device.  Exiting.")
        exit()
       
-   response = m.activateDevice(externalId, thingName, vin, authorization)
+   response = m.activateDevice(deviceMaker = deviceMaker, externalId = externalId, thingName = thingName, vin = vin, authorization = authorization)
    
    if response.status_code == 204:
        print("Device activated successfully...")
