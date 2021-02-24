@@ -198,10 +198,12 @@ class IOT():
     def createProvisioningPolicyRole(self):
         response = self.iam.describeRole(self.roleName)  
         if response == 'NoSuchEntity':
-            with open('assets/iotRoleTrust.json') as f:
-                template = json.load(f)
-            policy_res = self.iam.createRole(json.dumps(template),self.roleName, 'Iot Services Trust role')
-            self.roleArn = policy_res['Role']['Arn']
+            policy_res = self.iam.createRole('iotRoleTrust.json',self.roleName, 'Iot Services Trust role')
+            print(policy_res)
+            if(policy_res =='Role already exists... hence exiting from here') or (policy_res == 'Unexpected error occurred... Role could not be created')
+                return 'Error
+            else 
+                self.roleArn = policy_res['Role']['Arn']
         else:
             self.roleArn = response['Role']['Arn']
         return self.roleArn
