@@ -198,7 +198,9 @@ class IOT():
     def createProvisioningPolicyRole(self):
         response = self.iam.describeRole(self.roleName)  
         if response == 'NoSuchEntity':
-            policy_res = self.iam.createRole('iotRoleTrust.json',self.roleName, 'Iot Services Trust role')
+            with open('assets/iotRoleTrust.json') as f:
+                template = json.load(f)
+            policy_res = self.iam.createRole(json.dumps(template),self.roleName, 'Iot Services Trust role')
             self.roleArn = policy_res['Role']['Arn']
         else:
             self.roleArn = response['Role']['Arn']
