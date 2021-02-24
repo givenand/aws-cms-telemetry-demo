@@ -201,8 +201,8 @@ class IOT():
             policy_res = self.iam.createRole('iotRoleTrust.json',self.roleName, 'Iot Services Trust role')
             print(policy_res)
             if policy_res =='Role already exists... hence exiting from here' or policy_res == 'Unexpected error occurred... Role could not be created':
-                return 'Error
-            else 
+                return 'Error'
+            else:
                 self.roleArn = policy_res['Role']['Arn']
         else:
             self.roleArn = response['Role']['Arn']
