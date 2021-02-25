@@ -87,8 +87,7 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
    m = ConnectedMobility(profile, stackname, cdfstackname)
    i = IOT(profile, default_role_name, default_role_arn, CONFIG_PATH)   
    provisioner = ProvisioningHandler(CONFIG_PATH, provisioning_template_name, thingName, i.iotEndpoint)
-   print(i.iotEndpoint)
-   exit()         
+   
    if not c.checkCognitoUser(username,m.userPoolId):
      print("Creating user ...")
      c.createCognitoUser(username, password, m.userPoolId, m.userPoolClientId)
