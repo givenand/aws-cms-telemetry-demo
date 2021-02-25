@@ -150,7 +150,10 @@ class ProvisioningHandler:
             self.template_name = self.rotation_template
             self.isRotation = True
 
-        return asyncio.run(self.orchestrate_provisioning_flow(callback))
+        loop = asyncio.get_event_loop()
+        
+       # return asyncio.run(self.orchestrate_provisioning_flow(callback))
+        return loop.run_until_complete(self.orchestrate_provisioning_flow(callback))
 
     async def orchestrate_provisioning_flow(self,callback):
         # Connect to core with provision claim creds
