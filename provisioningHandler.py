@@ -320,16 +320,16 @@ class ProvisioningHandler:
         """Method testing a call to the basic telemetry topic (which was specified in the policy for the new certificate)
         """
 
-        new_cert_topic = self.topic_name.format(deviceid=self.unique_id)
-        print("Subscribing to topic '{}'...".format(new_cert_topic))
-        mqtt_topic_subscribe_future, _ = self.test_MQTTClient.subscribe(
-            topic=new_cert_topic,
-            qos=mqtt.QoS.AT_LEAST_ONCE,
-            callback=self.on_message_received)
+       # new_cert_topic = self.topic_name.format(deviceid=self.unique_id)
+       # print("Subscribing to topic '{}'...".format(new_cert_topic))
+       # mqtt_topic_subscribe_future, _ = self.test_MQTTClient.subscribe(
+       #     topic=new_cert_topic,
+       #     qos=mqtt.QoS.AT_LEAST_ONCE,
+       #     callback=self.on_message_received)
 
         # Wait for subscription to succeed
-        mqtt_topic_subscribe_result = mqtt_topic_subscribe_future.result()
-        print("Subscribed with {}".format(str(mqtt_topic_subscribe_result['qos'])))
+        #mqtt_topic_subscribe_result = mqtt_topic_subscribe_future.result()
+        #print("Subscribed with {}".format(str(mqtt_topic_subscribe_result['qos'])))
         tripId = uuid.uuid4().hex
         coords = self.payloadhandler.generateInitialCoordinatesFromCSV()
         payload = self.payloadhandler.getPayload( coords[0], tripId, self.unique_id)
