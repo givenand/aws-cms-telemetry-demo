@@ -46,7 +46,9 @@ class IOT():
     @iam.setter 
     def iam(self, val):
         self.__iam = val
-            
+    @property
+    def iotEndpoint(self):
+        return self.client.describe_endpoint(endpointType='iot:Data-ATS')['endpointAddress']        
     @property
     def certificateArn(self):
         return self.__certificateArn

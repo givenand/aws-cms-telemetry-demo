@@ -15,7 +15,7 @@ import sys
 
 class ProvisioningHandler:
 
-    def __init__(self, file_path, template_name, thing_name):
+    def __init__(self, file_path, template_name, thing_name, endpoint):
         """Initializes the provisioning handler
         
         Arguments:
@@ -29,7 +29,7 @@ class ProvisioningHandler:
         config = Config(file_path)
         self.config_parameters = config.get_section('SETTINGS')
         self.secure_cert_path = self.config_parameters['SECURE_CERT_PATH']
-        self.iot_endpoint = self.config_parameters['IOT_ENDPOINT']	
+        self.iot_endpoint = endpoint	
         self.template_name = template_name #self.config_parameters['PRODUCTION_TEMPLATE']
         self.rotation_template = self.config_parameters['CERT_ROTATION_TEMPLATE']
         self.claim_cert = self.config_parameters['CLAIM_CERT']
@@ -50,6 +50,7 @@ class ProvisioningHandler:
         """ Method used to connect to AWS IoTCore Service. Endpoint collected from config.
         
         """
+        
         if self.isRotation:
             self.logger.info('Connecting with Bootstrap certificate ')
             print('Connecting with Bootstrap certificate ')
@@ -62,14 +63,14 @@ class ProvisioningHandler:
         host_resolver = io.DefaultHostResolver(event_loop_group)
         client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
         path = self.secure_cert_path.format(unique_id=self.unique_id)
-        print(path)
+        #print(path)
         self.primary_MQTTClient = mqtt_connection_builder.mtls_from_path(
             endpoint=self.iot_endpoint,
             cert_filepath="{}/{}".format(path, self.claim_cert),
             pri_key_filepath="{}/{}".format(path, self.secure_key),
             client_bootstrap=client_bootstrap,
             ca_filepath="{}/{}".format(self.root_cert_path, self.root_cert),
-    #        on_connection_interrupted=self.on_connection_interrupted,
+            on_connection_interrupted=self.on_connection_interrupted,
             on_connection_resumed=self.on_connection_resumed,
             client_id=self.unique_id,
             clean_session=False,
@@ -81,8 +82,8 @@ class ProvisioningHandler:
         connect_future.result()
         print("Connected!")
         
-    #def on_connection_interrupted(self, connection, error, **kwargs):
-    #    print("Connection interrupted. error: {}".format(error))
+    def on_connection_interrupted(self, connection, error, **kwargs):
+        print("Connection interrupted. error: {}".format(error))
 
     # Callback when an interrupted connection is re-established.
     def on_connection_resumed(self, connection, return_code, session_present, **kwargs):
@@ -282,6 +283,7 @@ class ProvisioningHandler:
         print("Activated and tested credentials ({}, {}). ".format(self.new_key_name, self.new_cert_name))
         print("Files saved to {} ".format(self.secure_cert_path.format(unique_id=self.unique_id)))
         print("Successfully provisioned")
+        self.primary_MQTTClient.disconnect()
         self.callback_returned = True
 
     def cert_validation_test(self):
