@@ -331,7 +331,7 @@ class ProvisioningHandler:
 
         # Wait for subscription to succeed
         #mqtt_topic_subscribe_result = mqtt_topic_subscribe_future.result()
-        print("Publishing initial payload to {}".format(new_cert_topic)))
+        print("Publishing initial payload to {}".format(new_cert_topic))
         tripId = uuid.uuid4().hex
         coords = self.payloadhandler.generateInitialCoordinatesFromCSV()
         payload = self.payloadhandler.getPayload( coords[0], tripId, self.unique_id)
