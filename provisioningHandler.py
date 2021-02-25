@@ -278,6 +278,8 @@ class ProvisioningHandler:
         self.new_cert_pub_sub()
         print("Activated and tested credentials ({}, {}). ".format(self.new_key_name, self.new_cert_name))
         print("Files saved to {} ".format(self.secure_cert_path.format(unique_id=self.unique_id)))
+        print("Successfully provisioned")
+        self.callback_returned = True
 
     def cert_validation_test(self):
         event_loop_group = io.EventLoopGroup(1)
@@ -320,7 +322,7 @@ class ProvisioningHandler:
         """Method testing a call to the basic telemetry topic (which was specified in the policy for the new certificate)
         """
 
-       # new_cert_topic = self.topic_name.format(deviceid=self.unique_id)
+       new_cert_topic = self.topic_name.format(deviceid=self.unique_id)
        # print("Subscribing to topic '{}'...".format(new_cert_topic))
        # mqtt_topic_subscribe_future, _ = self.test_MQTTClient.subscribe(
        #     topic=new_cert_topic,
@@ -329,11 +331,12 @@ class ProvisioningHandler:
 
         # Wait for subscription to succeed
         #mqtt_topic_subscribe_result = mqtt_topic_subscribe_future.result()
-        #print("Subscribed with {}".format(str(mqtt_topic_subscribe_result['qos'])))
+        print("Publishing initial payload to {}".format(new_cert_topic)))
         tripId = uuid.uuid4().hex
         coords = self.payloadhandler.generateInitialCoordinatesFromCSV()
         payload = self.payloadhandler.getPayload( coords[0], tripId, self.unique_id)
         self.payloadhandler.publishPayload(self.test_MQTTClient, payload, self.unique_id)
+        print("Published successfully!")
 #        self.test_MQTTClient.publish(
 #            topic=new_cert_topic,
 #            payload=self.getPayload('payload.json'),
