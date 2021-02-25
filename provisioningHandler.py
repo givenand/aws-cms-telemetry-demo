@@ -322,7 +322,7 @@ class ProvisioningHandler:
         """Method testing a call to the basic telemetry topic (which was specified in the policy for the new certificate)
         """
 
-       new_cert_topic = self.topic_name.format(deviceid=self.unique_id)
+        new_cert_topic = self.topic_name.format(deviceid=self.unique_id)
        # print("Subscribing to topic '{}'...".format(new_cert_topic))
        # mqtt_topic_subscribe_future, _ = self.test_MQTTClient.subscribe(
        #     topic=new_cert_topic,
