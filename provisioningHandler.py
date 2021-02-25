@@ -69,7 +69,7 @@ class ProvisioningHandler:
             pri_key_filepath="{}/{}".format(path, self.secure_key),
             client_bootstrap=client_bootstrap,
             ca_filepath="{}/{}".format(self.root_cert_path, self.root_cert),
-            on_connection_interrupted=self.on_connection_interrupted,
+    #        on_connection_interrupted=self.on_connection_interrupted,
             on_connection_resumed=self.on_connection_resumed,
             client_id=self.unique_id,
             clean_session=False,
