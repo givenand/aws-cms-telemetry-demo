@@ -81,8 +81,8 @@ class ProvisioningHandler:
         connect_future.result()
         print("Connected!")
         
-    def on_connection_interrupted(self, connection, error, **kwargs):
-        print("Connection interrupted. error: {}".format(error))
+    #def on_connection_interrupted(self, connection, error, **kwargs):
+    #    print("Connection interrupted. error: {}".format(error))
 
     # Callback when an interrupted connection is re-established.
     def on_connection_resumed(self, connection, return_code, session_present, **kwargs):
