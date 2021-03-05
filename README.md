@@ -67,7 +67,7 @@ Vehicle setup sucessfully, please visit http://d3lqxcqk33ijcr.cloudfront.net to 
 
 1. To generate telemetry, we can use the generate telemetry script, which will take the VIN that was just used to create
 ```
-./generateTelemetry.py --VIN LSH14J4C4KA097044
+./generateTelemetry.py --VIN LSH14J4C4KA097044 --profile=default
 ```
 2. This should post telemetry data (latitude/longitude) to the proper topic every second from the latLong2.csv file.  This data is generated using google maps and other routes can be generated if the below steps are followed.
 

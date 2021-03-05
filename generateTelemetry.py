@@ -20,7 +20,7 @@ from payloadHandler import payloadHandler
 
 from cmsHandler import ConnectedMobility
 from cognitoHandler import Cognito
-
+from iotHandler import IOT
 from awsiot import mqtt_connection_builder
 from awscrt import io, mqtt, auth, http
 
@@ -41,7 +41,7 @@ def on_connection_resumed(self, connection, return_code, session_present, **kwar
         # evaluate result with a callback instead.
         resubscribe_future.add_done_callback(self.on_resubscribe_complete)
 
-def main(vin):
+def main(profile, vin):
 
    #Set Config path
    CONFIG_PATH = 'config.ini'
@@ -50,7 +50,9 @@ def main(vin):
    #m = ConnectedMobility(profile, stackname)
    config = Config(CONFIG_PATH)
    config_parameters = config.get_section('SETTINGS')
-   ENDPOINT = config_parameters['IOT_ENDPOINT']
+   #ENDPOINT = config_parameters['IOT_ENDPOINT']
+   i = IOT(profile,"", "", CONFIG_PATH)   
+   ENDPOINT = i.iotEndpoint
    
    CLIENT_ID = vin
    PATH_TO_CERT = "{}/{}".format(config_parameters['SECURE_CERT_PATH'].format(unique_id=CLIENT_ID), config_parameters['PROD_CERT'])
@@ -102,7 +104,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
 
-    #parser.add_argument("-p", "--profile", action="store", dest="profile", default=None, help="AWS CLI profile")
+    parser.add_argument("-p", "--profile", action="store", dest="profile", default=None, help="AWS CLI profile")
     #parser.add_argument("-s", "--stackname", action="store", dest="stackname", default=None, help="AWS Stack Name for CMS")
     #parser.add_argument("-u", "--username", action="store", dest="username", help="Username to log into CMS")
     #parser.add_argument("-pwd", "--password", action="store", dest="password", default=None, help="Password for CMS User")
@@ -112,4 +114,4 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    main( args.vin)
+    main(args.profile, args.vin)
