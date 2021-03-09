@@ -162,7 +162,10 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
        vin)
 
    if v == True:
-    try: #to get root cert if it does not exist
+    try: #to get root cert if it does not exist    
+        print("Check that the provisioning template has been created")
+        template = i.describeProvisioningTemplate(provisioning_template_name)
+        print(template)
         print("Getting root certificate")
         root_path = "{}/{}".format( root_cert_path, root_cert)
         if not os.path.exists( root_path):

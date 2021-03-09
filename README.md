@@ -19,6 +19,8 @@ This repo contains several scripts necessary to automate the creation of devices
 
 3. A valid VIN will be used as the thing name and subsequent simulations
 
+Note: If you see "The security token included in the request is invalid" error for CreateRole, make sure your security credentials are properly configured for the IAM user that was created and you are not using the root/default credentials.
+
 # Credentials
 
 Before you can deploy an application, be sure you have credentials configured. If you have previously configured your machine to run boto3 (the AWS SDK for Python) or the AWS CLI then you can skip this section.
@@ -50,7 +52,7 @@ The setupSingleVehicle.py will perform all the necessary steps to create a singl
 
 4. At this point, we have created a CMS user and created a single vehicle.  The next step is provisioning certificates to the device such that it can connect to IoT Core
 
-5. To create device certificates for a fleet, the decision was made to use just-in-time provisioning (JITP) which provides a bootstrap certificate to place on the device during manufacturing.  This certificate will allow the device to connect and subscribe to reserved IoT Core topics which will then provision the production certificate for the device.
+5. To create device certificates for a fleet, we will use Fleet Provisioning Templates with just-in-time provisioning (JITP) which provides a bootstrap certificate to place on the device during manufacturing.  This certificate will allow the device to connect and subscribe to reserved IoT Core topics which will then provision the production certificate for the device.
 
 6. When the device connects to this reserved topic a new certificate and public/private key is generated and downloaded to the device.  The device then uses that combination to subscribe to CMS topics.  For this demo, we will use virtual devices, essentially a directory with a unique vehicle Id (VIN) and the public/private certificate in the project folder
 
@@ -65,7 +67,7 @@ Vehicle setup sucessfully, please visit http://d3lqxcqk33ijcr.cloudfront.net to 
 
 # Creating your Device
 
-1. To generate telemetry, we can use the generate telemetry script, which will take the VIN that was just used to create
+1. To generate telemetry, we can use the generate telemetry script, which will take the VIN that was just used to create some telemetry from the latlong2.csv
 ```
 ./generateTelemetry.py --VIN LSH14J4C4KA097044 --profile=default
 ```

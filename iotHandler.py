@@ -5,6 +5,7 @@ import os
 from utils.config_loader import Config
 from iamHandler import IAM
 import json
+import time
 
 class IOT():
     __client = None 
@@ -170,7 +171,7 @@ class IOT():
             policyF = json.dumps(policy).replace("$REGION", region).replace("$ACCOUNT", accountId).replace("$PROVTEMPLATE",provisioningTemplateName )
                         
             if version is not None:   
-                print(version) 
+                #print(version) 
                 self.client.delete_policy_version(
                     policyName=policyName,
                     policyVersionId=version
@@ -184,7 +185,7 @@ class IOT():
                 )
             else:
                 #update or create a new version but set this version as default as it refers to a new provisioning template
-                print(json.dumps(policyF))
+                #print(json.dumps(policyF))
                 create_policy_res = self.client.create_policy(
                     policyName=policyName,
                     policyDocument=policyF
@@ -252,19 +253,24 @@ class IOT():
         #attach the role to the iot base service role
         print("Attaching base IoT Policy to role...")
         self.attachIoTPolicytoRole()
+        time.sleep(5)
         print("Attached.")
-        #create the provisioningtemplate
-        print("Creating Provisioning Template...")
-        response_provisioning = self.createIoTProvisioningTemplate(provisioningTemplateName, templateDescription, self.roleArn, templatePayloadJsonFileName)
-        if response_provisioning == 'ResourceAlreadyExistsException':
-            return "Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again"
-        else: self.provisioningTemplate = response_provisioning
-        print("Provisioning Template successfully created.")
         #create the policy
         print("Creating the policy associated with the provisioning template bootstrap...")
         policy_response = self.createProvisioningPolicy(policyName, provisioningTemplateName, policyPayloadJsonFileName)
         print(policy_response)
         print("Bootstrap Policy successfully created.")
+        #create the provisioningtemplate
+        print("Creating Fleet Provisioning Template...")
+        time.sleep(10)
+        response_provisioning = self.createIoTProvisioningTemplate(provisioningTemplateName, templateDescription, self.roleArn, templatePayloadJsonFileName)
+        if response_provisioning == 'ResourceAlreadyExistsException':
+            return "Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again"
+        else: 
+            print(response_provisioning)
+            self.provisioningTemplate = response_provisioning
+            print("Provisioning Template successfully created.")      
+
         #create provisioning certificate
         print("Creating provisioning certificates and writing to local directory...")
         self.createProvisioningCertificate(True, provisioningTemplateName, vin)
