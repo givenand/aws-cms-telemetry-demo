@@ -1,14 +1,26 @@
-# AWS CMS Enablement 
+# AWS CMS Enablement
 
 This repo contains several scripts necessary to automate the creation of devices in Connected Mobility Solution
 
+For example a script to register a single vehicle:
 ```bash
 ./setupSingleVehicle.py --profile=givenand-cms --stackName=cms-dev1 --VIN=LSH14J4C4LA046511 --FirstName=Test --LastName=User --Username=testCMSUser1 --Password=Testing1234 --CDFstackName cdf-core-development
 ```
 
+| parameter      | short | description                                                           |
+|----------------|-------|-----------------------------------------------------------------------|
+| --profile      | -p    | the profile to use                                                    |
+| --stackName    | -s    | the CMS stack name                                                    |
+| --CDFstackName | -c    | the CDF stack name                                                    |
+| --FirstName    | -f    | Owner given name                                                      |
+| --LastName     | -l    | Owner family name                                                     |
+| --VIN          | -v    | any VIN number you want (will be the Thing name                       |
+| --Username     | -u    | the admin user name provided during setup (CMS confirmation mail)     |
+| --Password     | -pwd  | the admin password generated during setup (CMS confirmation mail)     |
+
 # Requirements
 
-1. The CMS CF was deployed succsesfully, please follow the onboarding instructions
+1. The CMS CF was deployed successfully, please follow the onboarding instructions
 
 ```
 ./infrastructure/deploy-core.bash -e cmsdev2 -b givenand-cms2-s3 -p givenand-kp-cms2 -R us-west-2 -P givenand-cms -B  -y s3://givenand-cms2-s3/template-snippets/ -i 0.0.0.0/0 
