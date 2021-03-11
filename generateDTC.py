@@ -94,4 +94,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main( args.vin, args.dtc)
+    if args.vin and args.dtc:
+        main(args.vin, args.dtc)
+    else:
+        print('[Error] Missing arguments..')
+        parser.print_help()
