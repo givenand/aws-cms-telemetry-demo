@@ -102,7 +102,7 @@ def main(profile, vin):
            
 if __name__ == "__main__":
     
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser('generateTelemetry.py')
 
     parser.add_argument("-p", "--profile", action="store", dest="profile", default=None, help="AWS CLI profile")
     #parser.add_argument("-s", "--stackname", action="store", dest="stackname", default=None, help="AWS Stack Name for CMS")
@@ -114,4 +114,9 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    main(args.profile, args.vin)
+    if args.profile and args.vin:
+        main(args.profile, args.vin)
+    else:
+        print('[Error] Missing Arguments..')
+        parser.print_help()
+
