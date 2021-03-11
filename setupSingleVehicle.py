@@ -152,17 +152,16 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
    #begin setting up device certificates for this thing
    #We will use fleet provisioning to take a bootstrap certificate, this bootstrap certificate is allowed to connect to specific topics that will allow for the creation
    #of the permananet certificate.  The permanent certificate is then downloaded to the /certs folder and used to connect to the telemetry topics 
-   if skip == False:
-    print("Begin setting up provisioning templates and certificates...")
-    v = i.setupProvisioningTemplate(
+   print("Begin setting up provisioning templates and certificates...")
+   v = i.setupProvisioningTemplate(
         provisioning_template_name,
         provisioning_template_description, 
         provisioning_template_file_name, 
         provisioning_policy_name, 
         provisioning_policy_file_name,
-        vin)
-   else: v = True
-    
+        vin,
+        skip)
+
    if v == True:
     try: #to get root cert if it does not exist    
         print("Check that the provisioning template has been created")

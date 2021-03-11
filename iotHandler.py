@@ -238,38 +238,40 @@ class IOT():
                                   templatePayloadJsonFileName, 
                                   policyName, 
                                   policyPayloadJsonFileName,
-                                  vin):
+                                  vin,
+                                  skipCreate):
         #first check if policy exists
-        print("Check for existing provisioning policy...")
-        response_prov_policy = self.getProvisioningPolicy(provisioningTemplateName)
-        if response_prov_policy != 'ResourceNotFoundException':
-            print("Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again")
-            exit()
-        
-        print("Creating the provisioning policy role...")
-        #then create the role the policy can be attached to
-        self.createProvisioningPolicyRole()
-        print("Created Role.")
-        #attach the role to the iot base service role
-        print("Attaching base IoT Policy to role...")
-        self.attachIoTPolicytoRole()
-        time.sleep(5)
-        print("Attached.")
-        #create the policy
-        print("Creating the policy associated with the provisioning template bootstrap...")
-        policy_response = self.createProvisioningPolicy(policyName, provisioningTemplateName, policyPayloadJsonFileName)
-        print(policy_response)
-        print("Bootstrap Policy successfully created.")
-        #create the provisioningtemplate
-        print("Creating Fleet Provisioning Template...")
-        time.sleep(10)
-        response_provisioning = self.createIoTProvisioningTemplate(provisioningTemplateName, templateDescription, self.roleArn, templatePayloadJsonFileName)
-        if response_provisioning == 'ResourceAlreadyExistsException':
-            return "Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again"
-        else: 
-            print(response_provisioning)
-            self.provisioningTemplate = response_provisioning
-            print("Provisioning Template successfully created.")      
+        if skipCreate == False:
+            print("Check for existing provisioning policy...")
+            response_prov_policy = self.getProvisioningPolicy(provisioningTemplateName)
+            if response_prov_policy != 'ResourceNotFoundException':
+                print("Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again")
+                exit()
+            
+            print("Creating the provisioning policy role...")
+            #then create the role the policy can be attached to
+            self.createProvisioningPolicyRole()
+            print("Created Role.")
+            #attach the role to the iot base service role
+            print("Attaching base IoT Policy to role...")
+            self.attachIoTPolicytoRole()
+            time.sleep(5)
+            print("Attached.")
+            #create the policy
+            print("Creating the policy associated with the provisioning template bootstrap...")
+            policy_response = self.createProvisioningPolicy(policyName, provisioningTemplateName, policyPayloadJsonFileName)
+            print(policy_response)
+            print("Bootstrap Policy successfully created.")
+            #create the provisioningtemplate
+            print("Creating Fleet Provisioning Template...")
+            time.sleep(10)
+            response_provisioning = self.createIoTProvisioningTemplate(provisioningTemplateName, templateDescription, self.roleArn, templatePayloadJsonFileName)
+            if response_provisioning == 'ResourceAlreadyExistsException':
+                return "Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again"
+            else: 
+                print(response_provisioning)
+                self.provisioningTemplate = response_provisioning
+                print("Provisioning Template successfully created.")      
 
         #create provisioning certificate
         print("Creating provisioning certificates and writing to local directory...")
