@@ -59,7 +59,7 @@ log = logging.getLogger('deploy.cf.create_or_update')  # pylint: disable=C0103
 def callback(payload):
     print(payload)
     
-def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, password):
+def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, password, skip):
     
    #Set Config path
    CONFIG_PATH = 'config.ini'
@@ -152,15 +152,17 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
    #begin setting up device certificates for this thing
    #We will use fleet provisioning to take a bootstrap certificate, this bootstrap certificate is allowed to connect to specific topics that will allow for the creation
    #of the permananet certificate.  The permanent certificate is then downloaded to the /certs folder and used to connect to the telemetry topics 
-   print("Begin setting up provisioning templates and certificates...")
-   v = i.setupProvisioningTemplate(
-       provisioning_template_name,
-       provisioning_template_description, 
-       provisioning_template_file_name, 
-       provisioning_policy_name, 
-       provisioning_policy_file_name,
-       vin)
-
+   if skip == False:
+    print("Begin setting up provisioning templates and certificates...")
+    v = i.setupProvisioningTemplate(
+        provisioning_template_name,
+        provisioning_template_description, 
+        provisioning_template_file_name, 
+        provisioning_policy_name, 
+        provisioning_policy_file_name,
+        vin)
+   else: v = True
+    
    if v == True:
     try: #to get root cert if it does not exist    
         print("Check that the provisioning template has been created")
@@ -203,7 +205,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--LastName", action="store", dest="lastname", default=None, help="Last Name for CMS User")
     parser.add_argument("-u", "--Username", action="store", dest="username", help="Username to log into CMS")
     parser.add_argument("-pwd", "--Password", action="store", dest="password", help="Password to log into CMS")
-
+    parser.add_argument("-skip", "--Skip", action="store", dest="skip", help="Skip provisioning template setup")
     args = parser.parse_args()
  
-    main(args.profile, args.stackname, args.cdfstackname, args.vin, args.firstname, args.lastname, args.username, args.password)
+    main(args.profile, args.stackname, args.cdfstackname, args.vin, args.firstname, args.lastname, args.username, args.password, args.skip)
