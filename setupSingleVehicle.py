@@ -205,5 +205,10 @@ if __name__ == "__main__":
     parser.add_argument("-pwd", "--Password", action="store", dest="password", help="Password to log into CMS")
 
     args = parser.parse_args()
- 
-    main(args.profile, args.stackname, args.cdfstackname, args.vin, args.firstname, args.lastname, args.username, args.password)
+
+    if args.profile and args.stackname and args.cdfstackname and args.vin and args.firstname and args.lastname and args.username and args.password:
+        main(args.profile, args.stackname, args.cdfstackname, args.vin, args.firstname, args.lastname, args.username, args.password)
+    else:
+        print('[Error] Missing arguments..')
+        parser.print_help()
+        
