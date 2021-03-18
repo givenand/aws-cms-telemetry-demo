@@ -18,6 +18,7 @@
             ],
             "Resource": [
                 "arn:aws:iot:$REGION:$ACCOUNT:topic/$aws/certificates/create/*",
+                "arn:aws:iot:$REGION:$ACCOUNT:topic/$aws/certificates/create-from-csr/*",
                 "arn:aws:iot:$REGION:$ACCOUNT:topic/$aws/provisioning-templates/$PROVTEMPLATE/provision/*"
             ]
         },
@@ -28,7 +29,8 @@
             ],
             "Resource": [
                 "arn:aws:iot:$REGION:$ACCOUNT:topicfilter/$aws/certificates/create/*",
-                "arn:aws:iot:$REGION:$ACCOUNT:topicfilter/$aws/provisioning-templates/$PROVTEMPLATE/provision/*"
+                "arn:aws:iot:$REGION:$ACCOUNT:topicfilter/$aws/provisioning-templates/$PROVTEMPLATE/provision/*",
+                "arn:aws:iot:$REGION:$ACCOUNT:topic/$aws/certificates/create-from-csr/*"
             ]
         }
     ]

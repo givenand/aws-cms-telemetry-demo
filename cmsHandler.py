@@ -182,11 +182,11 @@ class ConnectedMobility():
 
         return response
 
-    def registerDevice(self, externalId, thingName, authorization) -> None:
+    def registerDevice(self, externalId, thingName, authorization, certificateId) -> None:
         url = "{0}/suppliers/{1}/devices/{2}/register"
         url = url.format(self.facadeEndpointUrl, externalId, thingName)
         payload="{{\n    \"templateId\":\"auto_ecu\",\n    \"certificateId\": \"{0}\",\n    \"attributes\": {{\n        \"type\":\"tcu\",\n        \"model\":\"TCU-1\"\n    }}\n}}"
-        payload = payload.format(self.certificateId)
+        payload = payload.format(certificateId)
         headers = {
             'Authorization': authorization,
             'Accept': self.cAcceptHeader,

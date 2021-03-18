@@ -59,7 +59,7 @@ log = logging.getLogger('deploy.cf.create_or_update')  # pylint: disable=C0103
 def callback(payload):
     print(payload)
     
-def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, password, skip):
+def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, password, skip, csr):
     
    #Set Config path
    CONFIG_PATH = 'config.ini'
@@ -87,6 +87,18 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
    m = ConnectedMobility(profile, stackname, cdfstackname)
    i = IOT(profile, default_role_name, default_role_arn, CONFIG_PATH)   
    provisioner = ProvisioningHandler(CONFIG_PATH, provisioning_template_name, thingName, i.iotEndpoint)
+   
+   #begin setting up device certificates for this thing
+   #We will use fleet provisioning to take a bootstrap certificate, this bootstrap certificate is allowed to connect to specific topics that will allow for the creation
+   #of the permananet certificate.  The permanent certificate is then downloaded to the /certs folder and used to connect to the telemetry topics 
+   print("Setting up provisioning templates.")
+   if skip is not True:
+    i.setupProvisioningTemplate(
+        provisioning_template_name,
+        provisioning_template_description, 
+        provisioning_template_file_name, 
+        provisioning_policy_name, 
+        provisioning_policy_file_name)
    
    if not c.checkCognitoUser(username,m.userPoolId):
      print("Creating user ...")
@@ -118,9 +130,48 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
        print("CMS User created successfully...")
    else:
        print("Error creating CMS User.  May currently exist, who knows, there's no method to check.")
+
+   #create provisioning certificate
+   print("Creating provisioning certificates and writing to local directory.")
+   certificateArn = i.createProvisioningCertificate(True, provisioning_template_name, vin)
+   print("Certificates created successfully")
+   #attach the new certificate to the policy already created
+   print("Attaching the boostrap policy to the certificate")
+   i.attachPolicyToCertificate(provisioning_policy_name, certificateArn)
+   print("Policy attached successfully")
+   if csr is True:
+      i.createCertificateSigningRequest(True, vin, common_name=vin, country=None, state=None, city=None,
+              organization=None, organizational_unit=None, email_address=None)
        
+   try: #to get root cert if it does not exist    
+        print("Getting root certificate")
+        root_path = "{}/{}".format( root_cert_path, root_cert)
+        if not os.path.exists( root_path):
+            response = urlopen(root_cert_url)
+            content = response.read().decode('utf-8')
+            with open(root_path, "w" ) as f:
+                f.write( content )
+                f.close()
+   except Exception as e:
+            print(e)
+            exit()
+   print("Root certificate downloaded to certificates directory.")
+   #try:
+   if csr is not True:
+    print("{}/{}".format(secure_cert_path.format(unique_id=vin), bootstrap_cert))
+    with open("{}/{}".format(secure_cert_path.format(unique_id=vin), bootstrap_cert), 'r') as f:
+        # Call super-method to perform aquisition/activation
+        # of certs, association of thing, etc. Returns general
+        # purpose callback at this point.
+        # Instantiate provisioning handler, pass in path to config
+       provisioner.get_official_certs(callback, None, None)
+   else: 
+       provisioner.get_official_certs(callback, vin, 'csr-bootstrap.csr')
+   #except IOError:
+   #     print("### Bootstrap cert non-existent. Official cert may already be in place.")          
+
    print("Registering Device ...")          
-   response = m.registerDevice(externalId, thingName, authorization)
+   response = m.registerDevice(externalId, thingName, authorization, i.CertificateId)
    
    if response.status_code == 200 or response.status_code == 204 or response.status_code == 201:
        print("Device registered successfully...")
@@ -148,49 +199,8 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
    else:
        print("Error associating device to user.  Exiting.")
        exit()    
-
-   #begin setting up device certificates for this thing
-   #We will use fleet provisioning to take a bootstrap certificate, this bootstrap certificate is allowed to connect to specific topics that will allow for the creation
-   #of the permananet certificate.  The permanent certificate is then downloaded to the /certs folder and used to connect to the telemetry topics 
-   print("Begin setting up provisioning templates and certificates...")
-   v = i.setupProvisioningTemplate(
-        provisioning_template_name,
-        provisioning_template_description, 
-        provisioning_template_file_name, 
-        provisioning_policy_name, 
-        provisioning_policy_file_name,
-        vin,
-        skip)
-
-   if v == True:
-    try: #to get root cert if it does not exist    
-        print("Check that the provisioning template has been created")
-        template = i.describeProvisioningTemplate(provisioning_template_name)
-        print(template)
-        print("Getting root certificate")
-        root_path = "{}/{}".format( root_cert_path, root_cert)
-        if not os.path.exists( root_path):
-            response = urlopen(root_cert_url)
-            content = response.read().decode('utf-8')
-            with open(root_path, "w" ) as f:
-                f.write( content )
-                f.close()
-    except Exception as e:
-            print(e)
-            exit()
-    print("Root certificate downloaded to certificates directory.")
-    try:
-            print("{}/{}".format(secure_cert_path.format(unique_id=vin), bootstrap_cert))
-            with open("{}/{}".format(secure_cert_path.format(unique_id=vin), bootstrap_cert), 'r') as f:
-            # Call super-method to perform aquisition/activation
-            # of certs, association of thing, etc. Returns general
-            # purpose callback at this point.
-            # Instantiate provisioning handler, pass in path to config
-                provisioner.get_official_certs(callback)
-    except IOError:
-            print("### Bootstrap cert non-existent. Official cert may already be in place.")          
-    
-    print("Vehicle setup sucessfully, please visit http://{} to login with your user and see your vehicle".format(m.cloudFrontDomainUrl))            
+       
+   print("Vehicle setup sucessfully, please visit http://{} to login with your user and see your vehicle".format(m.cloudFrontDomainUrl))            
 
 if __name__ == "__main__":
     
@@ -204,11 +214,13 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--LastName", action="store", dest="lastname", default=None, help="Last Name for CMS User")
     parser.add_argument("-u", "--Username", action="store", dest="username", help="Username to log into CMS")
     parser.add_argument("-pwd", "--Password", action="store", dest="password", help="Password to log into CMS")
-    parser.add_argument("-skip", "--Skip", action="store", dest="skip", help="Skip provisioning template setup")
+    parser.add_argument("-skip", "--SetupProvisioningTemplates", action="store_true", dest="skip", default=False, help="Setup fleet provisioning template")
+    parser.add_argument("-csr", "--GenerateCSR", action="store_true", dest="csr", default=False, help="Register with CSR?")
+    
     args = parser.parse_args()
 
     if args.profile and args.stackname and args.cdfstackname and args.vin and args.firstname and args.lastname and args.username and args.password:
-        main(args.profile, args.stackname, args.cdfstackname, args.vin, args.firstname, args.lastname, args.username, args.password, args.skip)
+        main(args.profile, args.stackname, args.cdfstackname, args.vin, args.firstname, args.lastname, args.username, args.password, args.skip, args.csr)
     else:
         print('[Error] Missing arguments..')
         parser.print_help()

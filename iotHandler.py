@@ -6,10 +6,12 @@ from utils.config_loader import Config
 from iamHandler import IAM
 import json
 import time
+import OpenSSL 
 
 class IOT():
     __client = None 
     __iam = None
+    __certificateId = None
          
     def __init__(self, profile, roleName, policyArn, file_path):
         
@@ -237,51 +239,40 @@ class IOT():
                                   templateDescription, 
                                   templatePayloadJsonFileName, 
                                   policyName, 
-                                  policyPayloadJsonFileName,
-                                  vin,
-                                  skipCreate):
+                                  policyPayloadJsonFileName):
         #first check if policy exists
-        if skipCreate == False:
-            print("Check for existing provisioning policy...")
-            response_prov_policy = self.getProvisioningPolicy(provisioningTemplateName)
-            if response_prov_policy != 'ResourceNotFoundException':
-                print("Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again")
-                exit()
-            
-            print("Creating the provisioning policy role...")
-            #then create the role the policy can be attached to
-            self.createProvisioningPolicyRole()
-            print("Created Role.")
-            #attach the role to the iot base service role
-            print("Attaching base IoT Policy to role...")
-            self.attachIoTPolicytoRole()
-            time.sleep(5)
-            print("Attached.")
-            #create the policy
-            print("Creating the policy associated with the provisioning template bootstrap...")
-            policy_response = self.createProvisioningPolicy(policyName, provisioningTemplateName, policyPayloadJsonFileName)
-            print(policy_response)
-            print("Bootstrap Policy successfully created.")
-            #create the provisioningtemplate
-            print("Creating Fleet Provisioning Template...")
-            time.sleep(10)
-            response_provisioning = self.createIoTProvisioningTemplate(provisioningTemplateName, templateDescription, self.roleArn, templatePayloadJsonFileName)
-            if response_provisioning == 'ResourceAlreadyExistsException':
-                return "Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again"
-            else: 
-                print(response_provisioning)
-                self.provisioningTemplate = response_provisioning
-                print("Provisioning Template successfully created.")      
+        print("Check for existing provisioning policy...")
+        response_prov_policy = self.getProvisioningPolicy(provisioningTemplateName)
+        if response_prov_policy != 'ResourceNotFoundException':
+            print("Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again")
+            exit()
+        
+        print("Creating the provisioning policy role...")
+        #then create the role the policy can be attached to
+        self.createProvisioningPolicyRole()
+        print("Created Role.")
+        #attach the role to the iot base service role
+        print("Attaching base IoT Policy to role...")
+        self.attachIoTPolicytoRole()
+        time.sleep(5)
+        print("Attached.")
+        #create the policy
+        print("Creating the policy associated with the provisioning template bootstrap...")
+        policy_response = self.createProvisioningPolicy(policyName, provisioningTemplateName, policyPayloadJsonFileName)
+        print(policy_response)
+        print("Bootstrap Policy successfully created.")
+        #create the provisioningtemplate
+        print("Creating Fleet Provisioning Template...")
+        time.sleep(10)
+        response_provisioning = self.createIoTProvisioningTemplate(provisioningTemplateName, templateDescription, self.roleArn, templatePayloadJsonFileName)
+        if response_provisioning == 'ResourceAlreadyExistsException':
+            return "Error occured:  The template currently exists and cannot create another with the same name.  Please change the name and try again"
+        else: 
+            print(response_provisioning)
+            self.provisioningTemplate = response_provisioning
+            print("Provisioning Template successfully created.")      
 
-        #create provisioning certificate
-        print("Creating provisioning certificates and writing to local directory...")
-        self.createProvisioningCertificate(True, provisioningTemplateName, vin)
-        print("Certificates created successfully")
-        #attach the new certificate to the policy already created
-        print("Attaching the boostrap policy to the certificate")
-        self.attachPolicyToCertificate(policyName, self.certificateArn)
-        print("Policy attached successfully")
-        return True
+        
     def describeProvisioningTemplate(self, provisioningTemplateName):
         return self.client.describe_provisioning_template(templateName=provisioningTemplateName)
     def createProvisioningCertificate(self, writeToFile, provisi, vin):
@@ -313,7 +304,56 @@ class IOT():
                 with open(path + '/bootstrap-certificate.pem.crt', 'w') as outfile:
                         outfile.write(self.certificatePem)
 
-            print('certificateId: %s', self.certificateId)
+            #print('certificateId: %s', self.certificateId)
             #TODO://make sure this worked
+            return self.certificateArn
         except ClientError as error: 
             return error   
+    def createCertificateSigningRequest(self, writeToFile, vin, common_name, country=None, state=None, city=None,
+               organization=None, organizational_unit=None, email_address=None):
+        try:
+                        
+            if writeToFile:
+                path = self.secure_cert_path.format(unique_id=vin)                         
+                os.makedirs(path.format(unique_id=vin), exist_ok=True) 
+    
+                tls_private_key = OpenSSL.crypto.PKey()
+                tls_private_key.generate_key(OpenSSL.crypto.TYPE_RSA, 2048)
+
+                req = OpenSSL.crypto.X509Req()
+                req.get_subject().CN = common_name
+                if country:
+                    req.get_subject().C = country
+                if state:
+                    req.get_subject().ST = state
+                if city:
+                    req.get_subject().L = city
+                if organization:
+                    req.get_subject().O = organization
+                if organizational_unit:
+                    req.get_subject().OU = organizational_unit
+                if email_address:
+                    req.get_subject().emailAddress = email_address
+
+                with open(path + '/csr-bootstrap.key', "w") as private_key_file:
+                    private_key_pem = OpenSSL.crypto.dump_privatekey(
+                        OpenSSL.crypto.FILETYPE_PEM, tls_private_key
+                    )
+                    private_key_file.write(private_key_pem.decode())
+                    
+                req.set_pubkey(tls_private_key)
+                req.sign(tls_private_key, 'sha256')
+
+                csr = OpenSSL.crypto.dump_certificate_request(
+                        OpenSSL.crypto.FILETYPE_PEM, req)
+
+                with open(path + '/csr-bootstrap.csr', "w") as outfile:
+                        outfile.write(csr.decode())
+                        outfile.close()
+                        
+            #print('certificateId: %s', self.certificateId)
+            #TODO://make sure this worked
+            return True
+        except ClientError as error: 
+            return error   
+

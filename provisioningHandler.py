@@ -47,23 +47,17 @@ class ProvisioningHandler:
 
         self.payloadhandler = payloadHandler(file_path)
     def core_connect(self):
-        """ Method used to connect to AWS IoTCore Service. Endpoint collected from config.
-        
+        """ Method used to connect to AWS IoTCore Service. Endpoint collected from iot Handler.
         """
         
-        if self.isRotation:
-            self.logger.info('Connecting with Bootstrap certificate ')
-            print('Connecting with Bootstrap certificate ')
-            self.get_current_certs()
-        else:
-            self.logger.info('Connecting with Bootstrap certificate ')
-            print('Connecting with Bootstrap certificate ')
+        self.logger.info('Connecting with Bootstrap certificate ')
+        print('Connecting with Bootstrap certificate ')
 
         event_loop_group = io.EventLoopGroup(1)
         host_resolver = io.DefaultHostResolver(event_loop_group)
         client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
         path = self.secure_cert_path.format(unique_id=self.unique_id)
-        #print(path)
+        print(self.iot_endpoint)
         self.primary_MQTTClient = mqtt_connection_builder.mtls_from_path(
             endpoint=self.iot_endpoint,
             cert_filepath="{}/{}".format(path, self.claim_cert),
@@ -130,6 +124,43 @@ class ProvisioningHandler:
         certificate_accepted_topic = "$aws/certificates/create/json/accepted"
 
         subscribe_topics = [template_reject_topic, certificate_reject_topic, template_accepted_topic, certificate_accepted_topic]
+        
+        for mqtt_topic in subscribe_topics:
+            print("Subscribing to topic '{}'...".format(mqtt_topic))
+            mqtt_topic_subscribe_future, _ = self.primary_MQTTClient.subscribe(
+                topic=mqtt_topic,
+                qos=mqtt.QoS.AT_LEAST_ONCE,
+                callback=self.basic_callback)
+
+            # Wait for subscription to succeed
+            mqtt_topic_subscribe_result = mqtt_topic_subscribe_future.result()
+            print("Subscribed with {}".format(str(mqtt_topic_subscribe_result['qos'])))
+    def enable_csr_error_monitor(self):
+        """ Subscribe to pertinent IoTCore topics that would emit errors
+        """
+        csr_reject_topic = "$aws/certificates/create-from-csr/json/rejected"
+        csr_accepted_topic = "$aws/certificates/create-from-csr/json/accepted"
+        
+        subscribe_topics = [csr_reject_topic, csr_accepted_topic]
+
+        for mqtt_topic in subscribe_topics:
+            print("Subscribing to topic '{}'...".format(mqtt_topic))
+            mqtt_topic_subscribe_future, _ = self.primary_MQTTClient.subscribe(
+                topic=mqtt_topic,
+                qos=mqtt.QoS.AT_LEAST_ONCE,
+                callback=self.basic_csr_callback)
+
+            # Wait for subscription to succeed
+            mqtt_topic_subscribe_result = mqtt_topic_subscribe_future.result()
+            print("Subscribed with {}".format(str(mqtt_topic_subscribe_result['qos'])))
+    def enable_provisioning_monitor(self):
+        """ Subscribe to pertinent IoTCore topics that would emit errors
+        """
+        template_reject_topic = "$aws/provisioning-templates/{}/provision/json/rejected".format(self.template_name)
+        
+        template_accepted_topic = "$aws/provisioning-templates/{}/provision/json/accepted".format(self.template_name)
+        
+        subscribe_topics = [template_reject_topic, template_accepted_topic]
 
         for mqtt_topic in subscribe_topics:
             print("Subscribing to topic '{}'...".format(mqtt_topic))
@@ -141,22 +172,22 @@ class ProvisioningHandler:
             # Wait for subscription to succeed
             mqtt_topic_subscribe_result = mqtt_topic_subscribe_future.result()
             print("Subscribed with {}".format(str(mqtt_topic_subscribe_result['qos'])))
-
-    def get_official_certs(self, callback, isRotation=False):
+    def get_official_certs(self, callback, vin, csr):
         """ Initiates an async loop/call to kick off the provisioning flow.
             Triggers:
                on_message_callback() providing the certificate payload
         """
-        if isRotation:
-            self.template_name = self.rotation_template
-            self.isRotation = True
 
         loop = asyncio.get_event_loop()
         
-       # return asyncio.run(self.orchestrate_provisioning_flow(callback))
-        return loop.run_until_complete(self.orchestrate_provisioning_flow(callback))
+        if csr is None:
+            print("Beginning Provisioning flow for to create productions Certificates.")       
+            return loop.run_until_complete(self.orchestrate_create_provisioning_flow(callback))
+        else:
+            print("Beginning Provisioning flow for Certificate Signing Request.")
+            return loop.run_until_complete(self.orchestrate_csr_provisioning_flow(callback, vin, csr))
 
-    async def orchestrate_provisioning_flow(self,callback):
+    async def orchestrate_create_provisioning_flow(self,callback):
         # Connect to core with provision claim creds
         self.core_connect()
 
@@ -164,21 +195,60 @@ class ProvisioningHandler:
         self.enable_error_monitor()
 
         # Make a publish call to topic to get official certs
-        #self.primary_MQTTClient.publish("$aws/certificates/create/json", "{}", 0)
-
         self.primary_MQTTClient.publish(
             topic="$aws/certificates/create/json",
             payload="{}",
             qos=mqtt.QoS.AT_LEAST_ONCE)
         time.sleep(1)
-
+        
         # Wait the function return until all callbacks have returned
         # Returned denoted when callback flag is set in this class.
         while not self.callback_returned:
             await asyncio.sleep(0)
 
         return callback(self.message_payload)
+    
+    def on_publish_create_certificate_from_csr(self, future):
+        # type: (Future) -> None
+        try:
+            future.result() # raises exception if publish failed
+            print("Published CreateCertificateFromCsr request..")
 
+        except Exception as e:
+            print("Failed to publish CreateCertificateFromCsr request.")
+            exit(e)
+
+    async def orchestrate_csr_provisioning_flow(self,callback, vin, csr):
+        # Connect to core with provision claim creds
+        self.core_connect()
+
+        # Monitor topics for errors
+        self.enable_csr_error_monitor()
+        topic = '$aws/certificates/create-from-csr/json'
+        
+        print("Publishing CSR payload to {}".format(str(topic)))
+        
+        with open('certs/' + vin + '/' + csr) as f:
+                csrstring = f.read().splitlines()
+        csr = ''.join(csrstring)      
+        
+        #strcsr = str(csrstring).strip('\n')
+        payload = '{{"certificateSigningRequest": "{}"}}'.format(csr)
+        
+        mqtt_topic_publish_future, _ = self.primary_MQTTClient.publish(
+                                            topic=topic,
+                                            payload=payload,
+                                            qos=mqtt.QoS.AT_LEAST_ONCE)
+                        
+        mqtt_topic_publish_future.add_done_callback(self.on_publish_create_certificate_from_csr)
+        time.sleep(1)
+        # Wait the function return until all callbacks have returned
+        # Returned denoted when callback flag is set in this class.
+        while not self.callback_returned:
+            await asyncio.sleep(0)
+
+        return callback(self.message_payload)
+    
     def on_message_callback(self, payload):
         """ Callback Message handler responsible for workflow routing of msg responses from provisioning services.
         
@@ -186,7 +256,6 @@ class ProvisioningHandler:
             payload {bytes} -- The response message payload.
         """
         json_data = json.loads(payload)
-        
         # A response has been recieved from the service that contains certificate data. 
         if 'certificateId' in json_data:
             self.logger.info('Success. Saving keys to the device! ')
@@ -200,8 +269,10 @@ class ProvisioningHandler:
                 print('Activation Complete')
             else:
                 self.logger.info('Certificate Activated and device {} associated '.format(json_data['thingName']))
-                print('ertificate Activated and device {} associated '.format(json_data['thingName']))
-
+                print('Certificate Activated and device {} associated '.format(json_data['thingName']))
+                self.primary_MQTTClient.disconnect()
+                time.sleep(35)
+                
             self.validate_certs()
         elif 'service_response' in json_data:
             self.logger.info(json_data)
@@ -230,18 +301,27 @@ class ProvisioningHandler:
         f.write(payload['certificatePem'])
         f.close()
         
-
-        ### Create private key
-        self.new_key_name = 'production-private.pem.key' ##.format(self.new_key_root)
-        f = open('{}/{}'.format(self.secure_cert_path.format(unique_id=self.unique_id), self.new_key_name), 'w+')
-        f.write(payload['privateKey'])
-        f.close()
-
-        ### Extract/return Ownership token
+         ### Extract/return Ownership token
         self.ownership_token = payload['certificateOwnershipToken']
         
-        # Register newly aquired cert
-        self.register_thing(self.unique_id, self.ownership_token)
+        ### Create private key if not CSR based
+        if 'privateKey' in payload:
+            self.new_key_name = 'production-private.pem.key' ##.format(self.new_key_root)
+            f = open('{}/{}'.format(self.secure_cert_path.format(unique_id=self.unique_id), self.new_key_name), 'w+')
+            f.write(payload['privateKey'])
+            f.close()
+            # Register newly aquired cert
+            self.register_thing(self.unique_id, self.ownership_token)
+        else:
+           self.new_key_name = 'csr-bootstrap.key'
+           self.core_connect()
+           self.enable_provisioning_monitor()
+            # Register newly aquired cert
+           self.register_thing(self.unique_id, self.ownership_token)
+           
+           #self.validate_certs()
+        
+        
     # Callback when the subscribed topic receives a message
     def on_message_received(self, topic, payload, **kwargs):
         print("Received message from topic '{}': {}".format(topic, payload))
@@ -257,12 +337,9 @@ class ProvisioningHandler:
         Triggers:
             on_message_callback() - providing acknowledgement that the provisioning template was processed.
         """
-        if self.isRotation:
-            self.logger.info('Validating expiration and activating certificate ')
-            print('Validating expiration and activating certificate ')
-        else:
-            self.logger.info(' Activating Certificate and associating with device ')
-            print('Activating Certificate and associating with device ')
+
+        self.logger.info(' Activating Certificate and associating with device ')
+        print('Activating Certificate and associating with device ')
                 
         register_template = {"certificateOwnershipToken": token, "parameters": {"SerialNumber": serial}}
         
@@ -280,7 +357,7 @@ class ProvisioningHandler:
         print('Connecting with production certificate ')
         self.cert_validation_test()
         self.new_cert_pub_sub()
-        print("Activated and tested credentials ({}, {}). ".format(self.new_key_name, self.new_cert_name))
+          
         print("Files saved to {} ".format(self.secure_cert_path.format(unique_id=self.unique_id)))
         print("Successfully provisioned")
         self.primary_MQTTClient.disconnect()
@@ -291,16 +368,25 @@ class ProvisioningHandler:
         host_resolver = io.DefaultHostResolver(event_loop_group)
         client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
         cpath = self.secure_cert_path.format(unique_id=self.unique_id)
+        print("Connecting to production with credentials ({}, {}). ".format(self.new_key_name, self.new_cert_name))
+        certpath = "{}/{}".format(cpath, self.new_cert_name)
+        keypath = "{}/{}".format(cpath, self.new_key_name)
+        print(certpath)
+        print(keypath)
         self.test_MQTTClient = mqtt_connection_builder.mtls_from_path(
             endpoint=self.iot_endpoint,
-            cert_filepath="{}/{}".format(cpath, self.new_cert_name),
-            pri_key_filepath="{}/{}".format(cpath, self.new_key_name),
+            cert_filepath=certpath,
+            pri_key_filepath=keypath,
+            #cert_filepath="certs/LSH14J4C4KA097080/production-certificate.pem.crt",
+            #pri_key_filepath="certs/LSH14J4C4KA097080/csr-bootstrap.key",
             client_bootstrap=client_bootstrap,
             ca_filepath="{}/{}".format(self.root_cert_path, self.root_cert),
+            #ca_filepath="certs/root.ca.pem",
             client_id=self.unique_id,
             clean_session=False,
             on_connection_interrupted=self.on_connection_interrupted,
             on_connection_resumed=self.on_connection_resumed,
+            verify_peer=False,
             keep_alive_secs=6)
         
         print("Connecting with Prod certs to {} with client ID '{}'...".format(self.iot_endpoint, self.unique_id))
@@ -308,7 +394,20 @@ class ProvisioningHandler:
         # Future.result() waits until a result is available
         connect_future.result()
         print("Connected with Prod certs!")
-
+    def basic_csr_callback(self, topic, payload, **kwargs):
+        print("Received message from CSR topic '{}': {}".format(topic, payload))
+        if (topic == "$aws/certificates/create-from-csr/json/accepted"):
+            self.primary_MQTTClient.disconnect()
+            
+        #    mqtt_topic_unsubscribe_future, _ = self.primary_MQTTClient.unsubscribe("$aws/certificates/create-from-csr/json/accepted")   
+        #    mqtt_topic_unsubscribe_result = mqtt_topic_unsubscribe_future.result()
+        #    print("Unsubscribed from accepted topic {}".format(mqtt_topic_unsubscribe_result)) 
+        self.message_payload = payload
+        self.on_message_callback(payload)
+        if (topic == "$aws/certificates/create-from-csr/json/rejected"):
+            print("Failed provisioning")
+            self.callback_returned = True
+        
     def basic_callback(self, topic, payload, **kwargs):
         print("Received message from topic '{}': {}".format(topic, payload))
         self.message_payload = payload

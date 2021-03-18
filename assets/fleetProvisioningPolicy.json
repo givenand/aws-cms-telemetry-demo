@@ -8,7 +8,7 @@
         ],
         "Resource": [
           "arn:aws:iot:region:account:topic/$aws/certificates/create/json",
-          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json",
+          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json/*",
           "arn:aws:iot:region:account:topic/$aws/provisioning-templates/templatename/provision/json"
         ]
       },
@@ -19,12 +19,9 @@
           "iot:Subscribe"
         ],
         "Resource": [
-          "arn:aws:iot:region:account:topic/$aws/certificates/create/json/accepted",
-          "arn:aws:iot:region:account:topic/$aws/certificates/create/json/rejected",
-          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json/accepted",
-          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json/rejected",
-          "arn:aws:iot:region:account:topic/$aws/provisioning-templates/templatename/provision/json/accepted",
-          "arn:aws:iot:region:account:topic/$aws/provisioning-templates/templatename/provision/json/rejected"
+          "arn:aws:iot:region:account:topic/$aws/certificates/create/json/*",
+          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json/*",
+          "arn:aws:iot:region:account:topic/$aws/provisioning-templates/templatename/provision/json/*"
         ]
       },
       {

@@ -67,7 +67,7 @@ def basic_callback(self, topic, payload, **kwargs):
         self.callback_returned = True
             
 def main():
-    session = boto3.Session(profile_name = 'givenand-cms')
+    session = boto3.Session(profile_name = 'default')
     client = session.client('iot')
 
     test_MQTTClient = None    
@@ -76,10 +76,10 @@ def main():
     host_resolver = io.DefaultHostResolver(event_loop_group)
     client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
 
-    ENDPOINT = "a37l6rbyiqptbc-ats.iot.us-west-2.amazonaws.com"
-    CLIENT_ID = "LSH14J4C4KA097019"
-    PATH_TO_CERT = "certs/c18f164ef1-certificate.pem.crt"
-    PATH_TO_KEY = "certs/c18f164ef1-private.pem.key"
+    ENDPOINT = "a3m15yqfy6j3pe-ats.iot.us-west-2.amazonaws.com"
+    CLIENT_ID = "LSH14J4C4KA097058"
+    PATH_TO_CERT = "certs/LSH14J4C4KA097083/production-certificate.pem.crt"
+    PATH_TO_KEY = "certs/LSH14J4C4KA097083/csr-bootstrap.key"
     PATH_TO_ROOT = "certs/root.ca.pem"
     MESSAGE = "Hello World"
     TOPIC = "test"
