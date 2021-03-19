@@ -171,7 +171,7 @@ def main(profile, stackname, cdfstackname, vin, firstname, lastname, username, p
    #     print("### Bootstrap cert non-existent. Official cert may already be in place.")          
 
    print("Registering Device ...")          
-   response = m.registerDevice(externalId, thingName, authorization, i.CertificateId)
+   response = m.registerDevice(externalId, thingName, authorization, provisioner.CertificateId)
    
    if response.status_code == 200 or response.status_code == 204 or response.status_code == 201:
        print("Device registered successfully...")
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--LastName", action="store", dest="lastname", default=None, help="Last Name for CMS User")
     parser.add_argument("-u", "--Username", action="store", dest="username", help="Username to log into CMS")
     parser.add_argument("-pwd", "--Password", action="store", dest="password", help="Password to log into CMS")
-    parser.add_argument("-skip", "--SetupProvisioningTemplates", action="store_true", dest="skip", default=False, help="Setup fleet provisioning template")
+    parser.add_argument("-skip", "--SkipSetupProvisioningTemplates", action="store_true", dest="skip", default=False, help="Skip setup of fleet provisioning template")
     parser.add_argument("-csr", "--GenerateCSR", action="store_true", dest="csr", default=False, help="Register with CSR?")
     
     args = parser.parse_args()

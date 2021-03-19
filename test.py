@@ -78,8 +78,8 @@ def main():
 
     ENDPOINT = "a3m15yqfy6j3pe-ats.iot.us-west-2.amazonaws.com"
     CLIENT_ID = "LSH14J4C4KA097058"
-    PATH_TO_CERT = "certs/LSH14J4C4KA097083/production-certificate.pem.crt"
-    PATH_TO_KEY = "certs/LSH14J4C4KA097083/csr-bootstrap.key"
+    PATH_TO_CERT = "certs/LSH14J4C4KA097088/production-certificate.pem.crt"
+    PATH_TO_KEY = "certs/LSH14J4C4KA097088/csr-bootstrap.key"
     PATH_TO_ROOT = "certs/root.ca.pem"
     MESSAGE = "Hello World"
     TOPIC = "test"

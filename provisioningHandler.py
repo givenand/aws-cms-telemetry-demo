@@ -5,6 +5,7 @@ from awsiot import mqtt_connection_builder
 from utils.config_loader import Config
 from payloadHandler import payloadHandler
 import time
+from datetime import datetime
 import uuid
 import logging
 import json 
@@ -12,9 +13,18 @@ import os
 import asyncio
 import glob
 import sys
+import OpenSSL 
 
 class ProvisioningHandler:
-
+    __certificateId = None
+    
+    @property
+    def CertificateId(self):
+        return self.__certificateId
+    @CertificateId.setter 
+    def CertificateId(self, val):
+        self.__certificateId = val
+        
     def __init__(self, file_path, template_name, thing_name, endpoint):
         """Initializes the provisioning handler
         
@@ -271,7 +281,7 @@ class ProvisioningHandler:
                 self.logger.info('Certificate Activated and device {} associated '.format(json_data['thingName']))
                 print('Certificate Activated and device {} associated '.format(json_data['thingName']))
                 self.primary_MQTTClient.disconnect()
-                time.sleep(35)
+                #time.sleep(60)
                 
             self.validate_certs()
         elif 'service_response' in json_data:
@@ -314,6 +324,7 @@ class ProvisioningHandler:
             self.register_thing(self.unique_id, self.ownership_token)
         else:
            self.new_key_name = 'csr-bootstrap.key'
+           self.CertificateId = cert_id
            self.core_connect()
            self.enable_provisioning_monitor()
             # Register newly aquired cert
@@ -371,24 +382,28 @@ class ProvisioningHandler:
         print("Connecting to production with credentials ({}, {}). ".format(self.new_key_name, self.new_cert_name))
         certpath = "{}/{}".format(cpath, self.new_cert_name)
         keypath = "{}/{}".format(cpath, self.new_key_name)
-        print(certpath)
-        print(keypath)
-        self.test_MQTTClient = mqtt_connection_builder.mtls_from_path(
-            endpoint=self.iot_endpoint,
-            cert_filepath=certpath,
-            pri_key_filepath=keypath,
-            #cert_filepath="certs/LSH14J4C4KA097080/production-certificate.pem.crt",
-            #pri_key_filepath="certs/LSH14J4C4KA097080/csr-bootstrap.key",
-            client_bootstrap=client_bootstrap,
-            ca_filepath="{}/{}".format(self.root_cert_path, self.root_cert),
-            #ca_filepath="certs/root.ca.pem",
-            client_id=self.unique_id,
-            clean_session=False,
-            on_connection_interrupted=self.on_connection_interrupted,
-            on_connection_resumed=self.on_connection_resumed,
-            verify_peer=False,
-            keep_alive_secs=6)
         
+        cert = OpenSSL.crypto.load_certificate(
+            OpenSSL.crypto.FILETYPE_PEM, 
+            open(certpath).read()
+        )
+        print("t: {}".format(datetime.today().strftime('%Y-%m-%d-%H:%M:%S')))
+        print("c: {}".format(cert.get_notBefore()))
+        if os.path.isfile(certpath) and os.path.isfile(keypath):
+            self.test_MQTTClient = mqtt_connection_builder.mtls_from_path(
+                endpoint=self.iot_endpoint,
+                cert_filepath=certpath,
+                pri_key_filepath=keypath,
+                client_bootstrap=client_bootstrap,
+                ca_filepath="{}/{}".format(self.root_cert_path, self.root_cert),
+                client_id=self.unique_id,
+                clean_session=False,
+                on_connection_interrupted=self.on_connection_interrupted,
+                on_connection_resumed=self.on_connection_resumed,
+                verify_peer=False,
+                keep_alive_secs=6)
+        else:
+            exit()
         print("Connecting with Prod certs to {} with client ID '{}'...".format(self.iot_endpoint, self.unique_id))
         connect_future = self.test_MQTTClient.connect()
         # Future.result() waits until a result is available
