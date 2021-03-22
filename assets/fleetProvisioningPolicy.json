@@ -8,7 +8,7 @@
         ],
         "Resource": [
           "arn:aws:iot:region:account:topic/$aws/certificates/create/json",
-          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json/*",
+          "arn:aws:iot:region:account:topic/$aws/certificates/create-from-csr/json",
           "arn:aws:iot:region:account:topic/$aws/provisioning-templates/templatename/provision/json"
         ]
       },
