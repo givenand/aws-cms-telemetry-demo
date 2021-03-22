@@ -313,6 +313,7 @@ class ProvisioningHandler:
         
          ### Extract/return Ownership token
         self.ownership_token = payload['certificateOwnershipToken']
+        self.CertificateId = cert_id
         
         ### Create private key if not CSR based
         if 'privateKey' in payload:
@@ -324,7 +325,6 @@ class ProvisioningHandler:
             self.register_thing(self.unique_id, self.ownership_token)
         else:
            self.new_key_name = 'csr-bootstrap.key'
-           self.CertificateId = cert_id
            self.core_connect()
            self.enable_provisioning_monitor()
             # Register newly aquired cert

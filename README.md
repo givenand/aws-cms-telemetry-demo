@@ -17,6 +17,8 @@ For example a script to register a single vehicle:
 | --VIN          | -v    | any VIN number you want (will be the Thing name                       |
 | --Username     | -u    | the admin user name provided during setup (CMS confirmation mail)     |
 | --Password     | -pwd  | the admin password generated during setup (CMS confirmation mail)     |
+| --SkipSetupProvisioningTemplates     | -skip  | this will skip setting up provisioning templates if you want to setup multiple devices (bool)     |
+| --GenerateCSR     | -csr  | this will generate a csr/private key on the device rather than allow IoT Core to generate     |
 
 # Requirements
 
