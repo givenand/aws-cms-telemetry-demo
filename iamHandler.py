@@ -26,11 +26,11 @@ class IAM():
             else:
                 return 'Unexpected error occurred... Role could not be created', error
             
-    def createRole(self, policyArn,roleName, description):
+    def createRole(self, payloadJsonFileName,roleName, description):
         try:
             #open the 
-            #with open('assets/' + payloadJsonFileName) as f:
-            #    role = json.load(f)
+            with open('assets/' + payloadJsonFileName) as f:
+                role = json.load(f)
 
             create_role_res = self.client.create_role(
                 RoleName=roleName,
