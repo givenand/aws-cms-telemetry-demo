@@ -1,0 +1,68 @@
+{
+    "RecipeFormatVersion": "2020-01-25",
+    "ComponentName": "com.aws.GenerateTelemetry",
+    "ComponentVersion": "1.2.0",
+    "ComponentType": "aws.greengrass.generic",
+    "ComponentDescription": "Publishes telemetry to CMS",
+    "ComponentPublisher": "Amazon",
+    "ComponentConfiguration": {
+      "DefaultConfiguration": {
+        "accessControl": {
+          "aws.greengrass.ipc.mqttproxy": {
+            "Ratchet_Hello:pubsub:1": {
+              "policyDescription": "Allows access to publish to anything.",
+              "operations": [
+                "aws.greengrass#PublishToIoTCore"
+              ],
+              "resources": [
+                "dt/cvra/LSH14J4C4KA097088/cardata"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Manifests": [
+      {
+        "Platform": {
+          "os": "linux"
+        },
+        "Lifecycle": {
+          "Run": "python3 -u {artifacts:path}/generateTelemetry.py '{configuration:/Message}'"
+        },
+        "Artifacts": [
+          {
+            "Uri": "s3://greengrass-component-artifacts-022035076260-us-west-2/artifacts/com.aws.GenerateTelemetry/1.0.0/generateTelemetry.py",
+            "Digest": "ZrVf3rxSBG185CXuQ5x2VY7qU/gr8Pil/sqf+uTqrPc=",
+            "Algorithm": "SHA-256",
+            "Unarchive": "NONE",
+            "Permission": {
+              "Read": "OWNER",
+              "Execute": "NONE"
+            }
+          },
+          {
+            "Uri": "s3://greengrass-component-artifacts-022035076260-us-west-2/artifacts/com.aws.GenerateTelemetry/1.0.0/latLong2.csv",
+            "Digest": "vvJzETNKJgC7w6i+qd01kbJnWPNRIP9BR+7sJUiZIZY=",
+            "Algorithm": "SHA-256",
+            "Unarchive": "NONE",
+            "Permission": {
+              "Read": "OWNER",
+              "Execute": "NONE"
+            }
+          },
+          {
+            "Uri": "s3://greengrass-component-artifacts-022035076260-us-west-2/artifacts/com.aws.GenerateTelemetry/1.0.0/payload.json",
+            "Digest": "MnygNvjmhfS4i6bZWQ5BpQfx77JDFK7aeR6nBCJpjKA=",
+            "Algorithm": "SHA-256",
+            "Unarchive": "NONE",
+            "Permission": {
+              "Read": "OWNER",
+              "Execute": "NONE"
+            }
+          }
+        ]
+      }
+    ],
+    "Lifecycle": {}
+  }
