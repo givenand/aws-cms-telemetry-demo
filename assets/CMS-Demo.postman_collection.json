@@ -1,0 +1,376 @@
+{
+	"info": {
+		"_postman_id": "4040b5fe-e545-433c-a10f-9bf91133d767",
+		"name": "CMS-Demo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0-Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"cognito_id_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "sgs4ev2i8hd4m5fd3s9uhbo8c",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "m7tec5qre08fc4j0no7bl1ffnel1jjgrp7932kta8ngkgcsnef8",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://cms-login1.auth.us-east-1.amazoncognito.com/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"cms-login1",
+						"auth",
+						"us-east-1",
+						"amazoncognito",
+						"com"
+					],
+					"path": [
+						"oauth2",
+						"token"
+					],
+					"query": [
+						{
+							"key": "response_type",
+							"value": "code",
+							"disabled": true
+						},
+						{
+							"key": "client_id",
+							"value": "5s3tip2pm9m999eue2alagvesi",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1 - Create-Supplier (AssetLibrary)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/vnd.aws-cdf-v1.0+json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.aws-cdf-v1.0+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"groupPath\" : \"/auto/suppliers/{{devicemakername}}\",\n    \"parentPath\" : \"/auto/suppliers\",\n    \"templateId\" : \"auto_supplier\",\n    \"name\" : \"{{devicemakername}}\",\n    \"attributes\" : {\n        \"externalId\": \"{{externalId}}\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{assetlibrary_base_url}}/groups",
+					"host": [
+						"{{assetlibrary_base_url}}"
+					],
+					"path": [
+						"groups"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2 - Create-User (Facade)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "accessToken",
+							"value": "eyJraWQiOiJwS202UWV1R2JFWFwvczl0NTI5dVVpQ08yR3lnVE83bmZqWXVWODVMZE5DMD0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI0OTc1ODQzZi03MGFjLTRhOTEtYmVhOC0wZmM3NjMzZWIwMGIiLCJldmVudF9pZCI6IjdmYzYyZDZhLWEzNDEtNDFkMy1hZWYyLTVmMjY0YjIwMWRlNCIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiaHR0cHM6XC9cLzdoZWh3Zzl3OWEuZXhlY3V0ZS1hcGkudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL1Byb2QiLCJhdXRoX3RpbWUiOjE2MDU1Mzg2ODIsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9uYXdzLmNvbVwvdXMtZWFzdC0xX1JFU2s2cHc1biIsImV4cCI6MTYwNTU0MjI4MiwiaWF0IjoxNjA1NTM4NjgyLCJ2ZXJzaW9uIjoyLCJqdGkiOiI5ODU2MjY1Ni0yNzJlLTQ1YjQtODI0ZS00MzJmNTY0NTBkYTYiLCJjbGllbnRfaWQiOiJzZ3M0ZXYyaThoZDRtNWZkM3M5dWhibzhjIiwidXNlcm5hbWUiOiJzY29mcmFuYyJ9.SIuLdBhyKwWfF5m1ORZzy77wbUKNEYUnoznFvh4jFGogF4NpfQpcUMbrCSDeukvoqYe_vvuIIXJs2IHhZqBabFyfQBPiUAw-eCX-Ohcos2IHWpO8kmB11YU9RRmtp5O5tDKl7Q6qSCblp3UYZmT_fbBVMjiKfLYWz3md2OYf5gXt5CYnk9SWG5DFWnebUvAm6xXuZaZUtp4Rq6ytDdPRzJ9BiaVsraCcT5EP_y0GOOq2aTz3YFw6tUzH1rwoYNGgLC0QsS50V8-RUKjwosK-eexpRhdlzFi3j9qna9bKXCLeQt1isLIHlvXDBVIiFqLx0Cf0JONIiwrcVWw0pub5tA",
+							"type": "string"
+						},
+						{
+							"key": "tokenType",
+							"value": "Bearer",
+							"type": "string"
+						},
+						{
+							"key": "headerPrefix",
+							"value": "Authorization",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{cognito_id_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/vnd.aws-cdf-v1.0+json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.aws-cdf-v1.0+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\" : \"{{username}}\",\n    \"firstName\" : \"{{firstName}}\",\n    \"lastName\" : \"{{lastName}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{facade_endpoint}}/users",
+					"host": [
+						"{{facade_endpoint}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3 - Register-Device (Facade)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "{{cognito_id_token}}"
+					},
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/vnd.aws-cdf-v1.0+json"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/vnd.aws-cdf-v1.0+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"templateId\": \"auto_ecu\",\n    \"certificateId\": \"{{certificateId}}\",\n    \"attributes\": {\n        \"type\": \"tcu\",\n        \"model\": \"TCU-1\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{facade_endpoint}}/suppliers/{{externalId}}/devices/{{thingName}}/register",
+					"host": [
+						"{{facade_endpoint}}"
+					],
+					"path": [
+						"suppliers",
+						"{{externalId}}",
+						"devices",
+						"{{thingName}}",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4 - Activate-Device (Facade)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "{{cognito_id_token}}"
+					},
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/vnd.aws-cdf-v1.0+json"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/vnd.aws-cdf-v1.0+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"vehicle\": {\n        \"make\": \"DENSO\",\n        \"model\": \"DN\",\n        \"modelYear\": 2019,\n        \"marketCode\": \"NA\",\n        \"vin\": \"{{thingName}}\",\n        \"bodyType\": \"Saloon\",\n        \"fuelType\": \"Gas\",\n        \"transmissionType\": \"Auto\",\n        \"transmissionAutoType\": \"7-speed\",\n        \"colorCode\": \"B1B!\",\n        \"iviType\": \"Premium\",\n        \"ecus\": [{\n            \"type\": \"tcu\",\n            \"id\": \"{{thingName}}\",\n            \"softwareVersion\": \"1.9.1\"\n        }]\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{facade_endpoint}}/suppliers/{{externalId}}/devices/{{thingName}}/activate",
+					"host": [
+						"{{facade_endpoint}}"
+					],
+					"path": [
+						"suppliers",
+						"{{externalId}}",
+						"devices",
+						"{{thingName}}",
+						"activate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5 - Associate-User-Car (AssetLibrary)",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/vnd.aws-cdf-v1.0+json"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/vnd.aws-cdf-v1.0+json"
+					}
+				],
+				"url": {
+					"raw": "{{assetlibrary_base_url}}/groups/%2Fauto%2Fusers%2F{{username}}/owns/groups/%2Fauto%2Fvehicles%2Fkl4cjhsb2db198124",
+					"host": [
+						"{{assetlibrary_base_url}}"
+					],
+					"path": [
+						"groups",
+						"%2Fauto%2Fusers%2F{{username}}",
+						"owns",
+						"groups",
+						"%2Fauto%2Fvehicles%2Fkl4cjhsb2db198124"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6 - Associate Owner with Vehicle",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{cognito_id_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/vnd.aws-cdf-v1.0+json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.aws-cdf-v1.0+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"pairingCode\": \"12345\"\n}"
+				},
+				"url": {
+					"raw": "{{facade_endpoint}}/vehicles/{{thingName}}/owners/{{username}}",
+					"host": [
+						"{{facade_endpoint}}"
+					],
+					"path": [
+						"vehicles",
+						"{{thingName}}",
+						"owners",
+						"{{username}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
